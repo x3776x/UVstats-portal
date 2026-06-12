@@ -8,6 +8,7 @@ import SidebarButton from '../../components/SidebarButton';
 import EmptyState from '../../components/EmptyState';
 import DCAInterface from '../../components/anova/DCAInterface';
 import DCADRInterface from '../../components/anova/DCADRInterface';
+import DBAInterface from '@/components/anova/DBAInterface';
 
 
 export default function AnovaPage() {
@@ -59,10 +60,10 @@ export default function AnovaPage() {
  
           {/* Render interface or WIP placeholder */}
           {activeKey === 'DCA' && <DCAInterface />}
-          
           {activeKey === 'DCA_DR' && <DCADRInterface />}
+          {activeKey === 'DBA' && <DBAInterface />}
           
-          {activeKey !== 'DCA' && activeKey !== 'DCA_DR' && (
+          {!['DCA', 'DCA_DR', 'DBA'].includes(activeKey) && (
              <EmptyState modelName={activeModel.fullName} />
           )}
         </div>

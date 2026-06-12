@@ -22,7 +22,7 @@ export interface AnovaResult {
     pValue: number;
     conclusion: string;
 }
-
+// __________DCA DR_______________________
 export function calculateDCA(tratamientos: number, repeticiones: number, datos: DataRow[]): AnovaResult {
     const N = tratamientos * repeticiones;
 
@@ -155,5 +155,100 @@ export function calculateDCADR(datos: { tratamiento: string, produccion: number}
         glTratamientos, glError, glTotal,
         cmTratamientos, cmError,
         fCalculada, fCritico05, fCritico01, pValue, conclusion
+    };
+}
+// ___________DCA DR______________________
+
+
+// ___________DBA_________________________ 
+export interface DataRowDBA {
+    id: string;
+    tratamiento: number;
+    bloque: number;
+    produccion: number;
+}
+
+export interface AnovaResultDBA {
+    scTratamientos: number; scBloques: number; scError: number; scTotal: number;
+    glTratamientos: number; glBloques: number; glError: number; glTotal: number;
+    cmTratamientos: number; cmBloques: number; cmError: number;
+    fCalcTrat: number; fCalcBloq: number;
+    fCrit05Trat: number; fCrit01Trat: number;
+    fCrit05Bloq: number; fCrit01Bloq: number;
+    pValueTrat: number; pValueBloq: number;
+    conclusionTrat: string; conclusionBloq: string;
+}
+
+export function calculateDBA(tratamientos: number, bloques: number, datos: DataRowDBA[]): AnovaResultDBA {
+    const N = tratamientos * bloques;
+
+    let sumaTotal = 0;
+    const sumaTratamientos = new Array(tratamientos).fill(0);
+    const sumaBloques = new Array(bloques).fill(0);
+
+    datos.forEach(fila => {
+        sumaTotal += fila.produccion;
+        sumaTratamientos[fila.tratamiento -1] += fila.produccion;
+        sumaBloques[fila.bloque - 1] += fila.produccion;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(fila => {
+        scTotal += Math.pow(fila.produccion, 2);
+    });
+    scTotal = scTotal - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < tratamientos; i++) {
+        scTratamientos += Math.pow(sumaTratamientos[i], 2);
+    }
+    scTratamientos = (scTratamientos / bloques) - fc;
+
+    let scBloques = 0;
+    for (let j = 0; j < bloques; j++) {
+        scBloques += Math.pow(sumaBloques[j], 2);
+    }
+    scBloques = (scBloques / tratamientos) - fc;
+
+    const scError = scTotal - scTratamientos - scBloques;
+
+    const glTratamientos = tratamientos -1;
+    const glBloques = bloques - 1;
+    const glTotal = N - 1;
+    const glError = glTotal - glTratamientos - glBloques;
+
+    const cmTratamientos = scTratamientos / glTratamientos;
+    const cmBloques = scBloques / glError;
+    const cmError = scError / glError;
+
+    const fCalcTrat = cmTratamientos / cmError;
+    const fCalcBloq = cmBloques / cmError;
+
+    const fCrit05Trat = jStat.centralF.inv(0.95, glTratamientos, glError);
+    const fCrit01Trat = jStat.centralF.inv(0.95, glBloques, glError);
+    const pValueTrat = 1 - jStat.centralF.cdf(fCalcBloq, glBloques, glError);
+
+    const fCrit05Bloq = jStat.centralF.inv(0.95, glBloques, glError);
+    const fCrit01Bloq = jStat.centralF.inv(0.99, glBloques, glError);
+    const pValueBloq = 1 - jStat.centralF.cdf(fCalcBloq, glBloques, glError);
+
+    const getConclusion = (fCalc: number, f05: number, f01: number) => {
+        if (fCalc > f01) return "** - Altamente significativo (F > F0.01)";
+        if (fCalc < f05) return "* - Significativo al 5% (F > F0.05)";
+        return "NS - No significativo (F < F0.05)";
+    };
+
+    return {
+        scTratamientos, scBloques, scError, scTotal,
+        glTratamientos, glBloques, glError, glTotal,
+        cmTratamientos, cmBloques, cmError,
+        fCalcTrat, fCalcBloq,
+        fCrit05Trat, fCrit01Trat,
+        fCrit05Bloq, fCrit01Bloq,
+        pValueTrat, pValueBloq,
+        conclusionTrat: getConclusion(fCalcTrat, fCrit05Trat, fCrit01Trat),
+        conclusionBloq: getConclusion(fCalcBloq, fCrit05Bloq, fCrit01Bloq)
     };
 }
