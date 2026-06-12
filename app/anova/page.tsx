@@ -9,6 +9,7 @@ import EmptyState from '../../components/EmptyState';
 import DCAInterface from '../../components/anova/DCAInterface';
 import DCADRInterface from '../../components/anova/DCADRInterface';
 import DBAInterface from '@/components/anova/DBAInterface';
+import DBAFaltanteInterface from '@/components/anova/DBAFaltanteInterface';
 
 
 export default function AnovaPage() {
@@ -62,8 +63,9 @@ export default function AnovaPage() {
           {activeKey === 'DCA' && <DCAInterface />}
           {activeKey === 'DCA_DR' && <DCADRInterface />}
           {activeKey === 'DBA' && <DBAInterface />}
+          {activeKey === 'DBA_DF' && <DBAFaltanteInterface />}
           
-          {!['DCA', 'DCA_DR', 'DBA'].includes(activeKey) && (
+          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF'].includes(activeKey) && (
              <EmptyState modelName={activeModel.fullName} />
           )}
         </div>

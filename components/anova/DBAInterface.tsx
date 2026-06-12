@@ -10,7 +10,6 @@ export default function DBAInterface() {
     const [tratamientos, setTratamientos] = useState('');
     const [bloques, setBloques] = useState('');
     
-    // UI State uses string for inputs
     const [tableData, setTableData] = useState<{id: string, tratamiento: number, bloque: number, produccion: string}[]>([]);
     const [isTableGenerated, setIsTableGenerated] = useState(false);
     const [resultados, setResultados] = useState<AnovaResultDBA | null>(null);

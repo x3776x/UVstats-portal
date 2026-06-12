@@ -252,3 +252,110 @@ export function calculateDBA(tratamientos: number, bloques: number, datos: DataR
         conclusionBloq: getConclusion(fCalcBloq, fCrit05Bloq, fCrit01Bloq)
     };
 }
+// ___________DBA_________________________
+
+// ___________DBA DF_________________________
+export interface DataRowDBAFaltante {
+    id: string;
+    tratamiento: number;
+    bloque: number;
+    produccion: number | null;
+}
+
+export interface AnovaResultDBAFaltante extends AnovaResultDBA {
+    valorEstimado: number;
+    tratFaltante: number;
+    bloqFaltante: number;
+}
+
+export function calculateDBAFaltante(tratamientos: number, bloques: number, datos: DataRowDBAFaltante[]): AnovaResultDBAFaltante {
+    const faltantes = datos.filter(d => d.produccion === null);
+    if (faltantes.length !== 1) {
+        throw new Error("El modelo requiere exactamente UN dato faltante (celda vacía).");
+    }
+    const faltante = faltantes[0];
+
+    let T = 0; let B = 0; let S = 0;
+    
+    datos.forEach(d => {
+        if (d.produccion !== null) {
+            S += d.produccion;
+            if (d.tratamiento === faltante.tratamiento) T += d.produccion;
+            if (d.bloque === faltante.bloque) B += d.produccion;
+        }
+    });
+
+    const x = ((tratamientos * T) + (bloques * B) - S) / ((tratamientos - 1) * (bloques - 1));
+
+    const datosCompletos = datos.map(d => ({
+        ...d,
+        produccion: d.produccion === null ? x : d.produccion
+    }));
+
+    let sumaTotal = 0;
+    const sumaTrat = new Array(tratamientos).fill(0);
+    const sumaBloq = new Array(bloques).fill(0);
+
+    datosCompletos.forEach(fila => {
+        sumaTotal += fila.produccion;
+        sumaTrat[fila.tratamiento - 1] += fila.produccion;
+        sumaBloq[fila.bloque - 1] += fila.produccion;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / (tratamientos * bloques);
+
+    let scTotal = 0;
+    datosCompletos.forEach(fila => scTotal += Math.pow(fila.produccion, 2));
+    scTotal = scTotal - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < tratamientos; i++) scTratamientos += Math.pow(sumaTrat[i], 2);
+    scTratamientos = (scTratamientos / bloques) - fc;
+
+    let scBloques = 0;
+    for (let j = 0; j < bloques; j++) scBloques += Math.pow(sumaBloq[j], 2);
+    scBloques = (scBloques / tratamientos) - fc;
+
+    const scError = scTotal - scTratamientos - scBloques;
+
+    const glTratamientos = tratamientos - 1;
+    const glBloques = bloques - 1;
+    const glTotal = (tratamientos * bloques) - 2;
+    const glError = glTotal - glTratamientos - glBloques;
+
+    const cmTratamientos = scTratamientos / glTratamientos;
+    const cmBloques = scBloques / glBloques;
+    const cmError = scError / glError;
+
+    const fCalcTrat = cmTratamientos / cmError;
+    const fCalcBloq = cmBloques / cmError;
+
+    const fCrit05Trat = jStat.centralF.inv(0.95, glTratamientos, glError);
+    const fCrit01Trat = jStat.centralF.inv(0.99, glTratamientos, glError);
+    const pValueTrat = 1 - jStat.centralF.cdf(fCalcTrat, glTratamientos, glError);
+
+    const fCrit05Bloq = jStat.centralF.inv(0.95, glBloques, glError);
+    const fCrit01Bloq = jStat.centralF.inv(0.99, glBloques, glError);
+    const pValueBloq = 1 - jStat.centralF.cdf(fCalcBloq, glBloques, glError);
+
+    const getConclusion = (fCalc: number, f05: number, f01: number) => {
+        if (fCalc > f01) return "** - Altamente significativo (F > F0.01)";
+        if (fCalc > f05) return "* - Significativo al 5% (F > F0.05)";
+        return "NS - No Significativo (F < F0.05)";
+    };
+
+    return {
+        scTratamientos, scBloques, scError, scTotal,
+        glTratamientos, glBloques, glError, glTotal,
+        cmTratamientos, cmBloques, cmError,
+        fCalcTrat, fCalcBloq, fCrit05Trat, fCrit01Trat, fCrit05Bloq, fCrit01Bloq,
+        pValueTrat, pValueBloq,
+        conclusionTrat: getConclusion(fCalcTrat, fCrit05Trat, fCrit01Trat),
+        conclusionBloq: getConclusion(fCalcBloq, fCrit05Bloq, fCrit01Bloq),
+        valorEstimado: x,
+        tratFaltante: faltante.tratamiento,
+        bloqFaltante: faltante.bloque
+    };
+}
+// ___________DBA DF_________________________
+
