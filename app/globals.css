@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+.app-container {
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 20px;
+  font-weight: Bold;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.project-tile {
+  background-color: #f2faef;
+  border: 2px solid #447a9c;
+  border-radius: 12px;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1/1;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.project-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tile-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 12px;
+  object-fit: fill;
+}
+
+.tile-placeholder-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.tile-title {
+  font-size: 16px;
+  font-weight: Bold;
+  margin: 0 0 8px 0;
+  color: #1d3658;
+}
+
+.tile-desc {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #000000;
+  margin: 0;
+}
+
+.content-button {
+  
+}
+
