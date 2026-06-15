@@ -707,4 +707,119 @@ export function calculateBifactorialDCA(a: number, b: number, r: number, datos: 
 }
 // __________Bi DCA_____________________________
 
-// __________
+// __________Bi DBA_____________________________
+export interface DataRowBiDBA {
+    id: string;
+    factorA: number;
+    factorB: number;
+    bloque: number;
+    rendimiento: number;
+}
+
+export interface AnovaResultBiDBA {
+    scBloques: number; scA: number; scB: number; scAB: number; scError: number; scTotal: number;
+    glBloques: number; glA: number; glB: number; glAB: number; glError: number; glTotal: number;
+    cmBloques: number; cmA: number; cmB: number; cmAB: number; cmError: number;
+    fCalcBloques: number; fCalcA: number; fCalcB: number; fCalcAB: number;
+    fCrit05Bloques: number; fCrit01Bloques: number;
+    fCrit05A: number; fCrit01A: number;
+    fCrit05B: number; fCrit01B: number;
+    fCrit05AB: number; fCrit01AB: number;
+    pValueBloques: number; pValueA: number; pValueB: number; pValueAB: number;
+    conclusionBloques: string; conclusionA: string; conclusionB: string; conclusionAB: string;
+}
+
+export function calculateBifactorialDBA(a: number, b: number, r: number, datos: DataRowBiDBA[]): AnovaResultBiDBA {
+    const N = a * b * r;
+
+    let sumaTotal = 0;
+    const sumaBloques = new Array(r).fill(0);
+    const sumaA = new Array(a).fill(0);
+    const sumaB = new Array(b).fill(0);
+    const sumaAB = Array.from({ length: a }, () => new Array(b).fill(0));
+
+    datos.forEach(d => {
+        sumaTotal += d.rendimiento;
+        sumaBloques[d.bloque - 1] += d.rendimiento;
+        sumaA[d.factorA - 1] += d.rendimiento;
+        sumaB[d.factorB - 1] += d.rendimiento;
+        sumaAB[d.factorA - 1][d.factorB - 1] += d.rendimiento;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(d => scTotal += Math.pow(d.rendimiento, 2));
+    scTotal = scTotal - fc;
+
+    let scBloques = 0;
+    sumaBloques.forEach(val => scBloques += Math.pow(val, 2));
+    scBloques = (scBloques / (a * b)) - fc;
+
+    let scA = 0;
+    sumaA.forEach(val => scA += Math.pow(val, 2));
+    scA = (scA / (b * r)) - fc;
+
+    let scB = 0;
+    sumaB.forEach(val => scB += Math.pow(val, 2));
+    scB = (scB / (a * r)) - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < a; i++) {
+        for (let j = 0; j < b; j++) {
+            scTratamientos += Math.pow(sumaAB[i][j], 2);
+        }
+    }
+    scTratamientos = (scTratamientos / r) - fc;
+
+    const scAB = scTratamientos - scA - scB;
+    
+    const scError = scTotal - scBloques - scTratamientos;
+
+    const glBloques = r - 1;
+    const glA = a - 1;
+    const glB = b - 1;
+    const glAB = (a - 1) * (b - 1);
+    const glTotal = N - 1;
+    const glError = (r - 1) * ((a * b) - 1);
+
+    const cmBloques = scBloques / glBloques;
+    const cmA = scA / glA;
+    const cmB = scB / glB;
+    const cmAB = scAB / glAB;
+    const cmError = scError / glError;
+
+    const fCalcBloques = cmBloques / cmError;
+    const fCalcA = cmA / cmError;
+    const fCalcB = cmB / cmError;
+    const fCalcAB = cmAB / cmError;
+
+    const calcStats = (fCalc: number, gl: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glError);
+        const f01 = jStat.centralF.inv(0.99, gl, glError);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glError);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsBloques = calcStats(fCalcBloques, glBloques);
+    const statsA = calcStats(fCalcA, glA);
+    const statsB = calcStats(fCalcB, glB);
+    const statsAB = calcStats(fCalcAB, glAB);
+
+    return {
+        scBloques, scA, scB, scAB, scError, scTotal,
+        glBloques, glA, glB, glAB, glError, glTotal,
+        cmBloques, cmA, cmB, cmAB, cmError,
+        fCalcBloques, fCalcA, fCalcB, fCalcAB,
+        fCrit05Bloques: statsBloques.f05, fCrit01Bloques: statsBloques.f01,
+        fCrit05A: statsA.f05, fCrit01A: statsA.f01,
+        fCrit05B: statsB.f05, fCrit01B: statsB.f01,
+        fCrit05AB: statsAB.f05, fCrit01AB: statsAB.f01,
+        pValueBloques: statsBloques.pVal, pValueA: statsA.pVal, pValueB: statsB.pVal, pValueAB: statsAB.pVal,
+        conclusionBloques: statsBloques.conclusion, conclusionA: statsA.conclusion, conclusionB: statsB.conclusion, conclusionAB: statsAB.conclusion
+    };
+}
+// __________Bi DBA_____________________________

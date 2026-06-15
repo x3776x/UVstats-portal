@@ -12,6 +12,7 @@ import DBAInterface from '@/components/anova/DBAInterface';
 import DBAFaltanteInterface from '@/components/anova/DBAFaltanteInterface';
 import DCLInterface from '@/components/anova/DCLInterface';
 import BifactorialDCAInterface from '@/components/anova/BifactorialDCAInterface';
+import BifactorialDBAInterface from '@/components/anova/BifactorialDBAInterface';
 import DCLFaltanteInterface from '@/components/anova/DCLFaltanteInterface';
 
 
@@ -70,8 +71,9 @@ export default function AnovaPage() {
           {activeKey === 'DCL' && <DCLInterface />}
           {activeKey === 'DCL_DF' && <DCLFaltanteInterface />}
           {activeKey === 'BIF_DCA' && <BifactorialDCAInterface />}
+          {activeKey === 'BIF_DBA' && <BifactorialDBAInterface />}
           
-          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF', 'DCL', 'DCL_DF', 'BIF_DCA'].includes(activeKey) && (
+          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF', 'DCL', 'DCL_DF', 'BIF_DCA', 'BIF_DBA'].includes(activeKey) && (
              <EmptyState modelName={activeModel.fullName} />
           )}
         </div>
