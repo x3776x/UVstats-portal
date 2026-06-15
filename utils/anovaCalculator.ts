@@ -943,3 +943,134 @@ export function calculatePDDCA(a: number, b: number, r: number, datos: DataRowPD
 }
 
 // __________PD DCA_____________________________
+
+// __________PD DBA_____________________________
+export interface DataRowPDDBA {
+    id: string;
+    factorA: number; // Parcela Principal
+    factorB: number; // Sub-parcela
+    bloque: number;  // Bloque (reemplaza a la repetición simple)
+    rendimiento: number;
+}
+
+export interface AnovaResultPDDBA {
+    scBloques: number; scA: number; scErrorA: number; scB: number; scAB: number; scErrorB: number; scTotal: number;
+    glBloques: number; glA: number; glErrorA: number; glB: number; glAB: number; glErrorB: number; glTotal: number;
+    cmBloques: number; cmA: number; cmErrorA: number; cmB: number; cmAB: number; cmErrorB: number;
+    fCalcBloques: number; fCalcA: number; fCalcB: number; fCalcAB: number;
+    fCrit05Bloques: number; fCrit01Bloques: number;
+    fCrit05A: number; fCrit01A: number;
+    fCrit05B: number; fCrit01B: number;
+    fCrit05AB: number; fCrit01AB: number;
+    pValueBloques: number; pValueA: number; pValueB: number; pValueAB: number;
+    conclusionBloques: string; conclusionA: string; conclusionB: string; conclusionAB: string;
+}
+
+export function calculatePDDBA(a: number, b: number, r: number, datos: DataRowPDDBA[]): AnovaResultPDDBA {
+    const N = a * b * r;
+
+    let sumaTotal = 0;
+    const sumaBloques = new Array(r).fill(0);
+    const sumaA = new Array(a).fill(0);
+    const sumaB = new Array(b).fill(0);
+    const sumaBloqueA = Array.from({ length: a }, () => new Array(r).fill(0)); // Interacción A x Bloques (Parcelas Principales)
+    const sumaAB = Array.from({ length: a }, () => new Array(b).fill(0));
+
+    datos.forEach(d => {
+        sumaTotal += d.rendimiento;
+        sumaBloques[d.bloque - 1] += d.rendimiento;
+        sumaA[d.factorA - 1] += d.rendimiento;
+        sumaB[d.factorB - 1] += d.rendimiento;
+        sumaBloqueA[d.factorA - 1][d.bloque - 1] += d.rendimiento;
+        sumaAB[d.factorA - 1][d.factorB - 1] += d.rendimiento;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(d => scTotal += Math.pow(d.rendimiento, 2));
+    scTotal = scTotal - fc;
+
+    let scBloques = 0;
+    sumaBloques.forEach(val => scBloques += Math.pow(val, 2));
+    scBloques = (scBloques / (a * b)) - fc;
+
+    let scA = 0;
+    sumaA.forEach(val => scA += Math.pow(val, 2));
+    scA = (scA / (b * r)) - fc;
+
+    let scParcelasP = 0;
+    for (let i = 0; i < a; i++) {
+        for (let k = 0; k < r; k++) {
+            scParcelasP += Math.pow(sumaBloqueA[i][k], 2);
+        }
+    }
+    scParcelasP = (scParcelasP / b) - fc;
+
+    const scErrorA = scParcelasP - scA - scBloques;
+
+    let scB = 0;
+    sumaB.forEach(val => scB += Math.pow(val, 2));
+    scB = (scB / (a * r)) - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < a; i++) {
+        for (let j = 0; j < b; j++) {
+            scTratamientos += Math.pow(sumaAB[i][j], 2);
+        }
+    }
+    scTratamientos = (scTratamientos / r) - fc;
+
+    const scAB = scTratamientos - scA - scB;
+
+    const scErrorB = scTotal - scParcelasP - scB - scAB;
+
+    const glBloques = r - 1;
+    const glA = a - 1;
+    const glErrorA = (r - 1) * (a - 1);
+    const glB = b - 1;
+    const glAB = (a - 1) * (b - 1);
+    const glErrorB = a * (r - 1) * (b - 1);
+    const glTotal = N - 1;
+
+    const cmBloques = scBloques / glBloques;
+    const cmA = scA / glA;
+    const cmErrorA = scErrorA / glErrorA;
+    const cmB = scB / glB;
+    const cmAB = scAB / glAB;
+    const cmErrorB = scErrorB / glErrorB;
+
+    const fCalcBloques = cmBloques / cmErrorA; 
+    const fCalcA = cmA / cmErrorA;
+    const fCalcB = cmB / cmErrorB;
+    const fCalcAB = cmAB / cmErrorB;
+
+    const calcStats = (fCalc: number, gl: number, glErr: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glErr);
+        const f01 = jStat.centralF.inv(0.99, gl, glErr);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glErr);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsBloques = calcStats(fCalcBloques, glBloques, glErrorA);
+    const statsA = calcStats(fCalcA, glA, glErrorA);
+    const statsB = calcStats(fCalcB, glB, glErrorB);
+    const statsAB = calcStats(fCalcAB, glAB, glErrorB);
+
+    return {
+        scBloques, scA, scErrorA, scB, scAB, scErrorB, scTotal,
+        glBloques, glA, glErrorA, glB, glAB, glErrorB, glTotal,
+        cmBloques, cmA, cmErrorA, cmB, cmAB, cmErrorB,
+        fCalcBloques, fCalcA, fCalcB, fCalcAB,
+        fCrit05Bloques: statsBloques.f05, fCrit01Bloques: statsBloques.f01,
+        fCrit05A: statsA.f05, fCrit01A: statsA.f01,
+        fCrit05B: statsB.f05, fCrit01B: statsB.f01,
+        fCrit05AB: statsAB.f05, fCrit01AB: statsAB.f01,
+        pValueBloques: statsBloques.pVal, pValueA: statsA.pVal, pValueB: statsB.pVal, pValueAB: statsAB.pVal,
+        conclusionBloques: statsBloques.conclusion, conclusionA: statsA.conclusion, conclusionB: statsB.conclusion, conclusionAB: statsAB.conclusion
+    };
+}
+// __________PD DBA_____________________________

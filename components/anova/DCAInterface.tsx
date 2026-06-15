@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { calculateDCA, AnovaResult } from '../../utils/anovaCalculator';
 import { parseAnovaFile } from '../../utils/fileParser';
 
@@ -15,6 +17,7 @@ interface DataRow {
 
 export default function DCAInterface() {
     const [method, setMethod] = useState<'manual' | 'excel' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [tratamientos, setTratamientos] = useState('');
     const [repeticiones, setRepeticiones] = useState('');
     const [resultados, setResultados ] = useState<AnovaResult | null>(null);
@@ -30,7 +33,7 @@ export default function DCAInterface() {
 
         // Basic validation
         if (isNaN(t) || isNaN(r) || t <= 0 || r <= 0) {
-            alert("Por favor, ingresa valores válidos mayores a 0.");
+            showToast("Por favor, ingresa valores válidos mayores a 0.", "error");
             return;
         }
 
@@ -122,7 +125,7 @@ export default function DCAInterface() {
                                 setMethod('manual');
 
                             } catch (error: any) {
-                                alert(error.message);
+                                showToast("${error.message}", "error");
                                 e.target.value = ''; 
                             }
                         }}
@@ -249,7 +252,7 @@ export default function DCAInterface() {
 
                                 } catch (error) {
                                     console.error("Error en el cálculo:", error);
-                                    alert("Ocurrió un error al calcular. Revisa los datos.");
+                                    showToast("Ocurrio un error al calcular. Verifica los datos.", "error");
                                 }
                             }}
                         >
@@ -321,6 +324,12 @@ export default function DCAInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }
