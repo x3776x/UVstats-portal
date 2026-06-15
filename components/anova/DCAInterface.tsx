@@ -111,7 +111,7 @@ export default function DCAInterface() {
                                 
                                 const formattedforUI = extractedData.map(row => ({
                                     ...row,
-                                    produccion: row.produccion.toString()
+                                    produccion: row.produccion!.toString()
                                 }));
 
                                 setTableData(formattedforUI);
