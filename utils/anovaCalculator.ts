@@ -823,3 +823,123 @@ export function calculateBifactorialDBA(a: number, b: number, r: number, datos: 
     };
 }
 // __________Bi DBA_____________________________
+
+// __________PD DCA_____________________________
+export interface DataRowPDDCA {
+    id: string;
+    factorA: number; // Parcela Principal
+    factorB: number; // Sub-parcela
+    repeticion: number;
+    rendimiento: number;
+}
+
+export interface AnovaResultPDDCA {
+    scA: number; scErrorA: number; scB: number; scAB: number; scErrorB: number; scTotal: number;
+    glA: number; glErrorA: number; glB: number; glAB: number; glErrorB: number; glTotal: number;
+    cmA: number; cmErrorA: number; cmB: number; cmAB: number; cmErrorB: number;
+    fCalcA: number; fCalcB: number; fCalcAB: number;
+    fCrit05A: number; fCrit01A: number;
+    fCrit05B: number; fCrit01B: number;
+    fCrit05AB: number; fCrit01AB: number;
+    pValueA: number; pValueB: number; pValueAB: number;
+    conclusionA: string; conclusionB: string; conclusionAB: string;
+}
+
+export function calculatePDDCA(a: number, b: number, r: number, datos: DataRowPDDCA[]): AnovaResultPDDCA {
+    const N = a * b * r;
+
+    let sumaTotal = 0;
+    const sumaA = new Array(a).fill(0);
+    const sumaB = new Array(b).fill(0);
+    const sumaRepA = Array.from({ length: a }, () => new Array(r).fill(0)); // Interacción A x Repeticiones
+    const sumaAB = Array.from({ length: a }, () => new Array(b).fill(0));
+
+    datos.forEach(d => {
+        sumaTotal += d.rendimiento;
+        sumaA[d.factorA - 1] += d.rendimiento;
+        sumaB[d.factorB - 1] += d.rendimiento;
+        sumaRepA[d.factorA - 1][d.repeticion - 1] += d.rendimiento;
+        sumaAB[d.factorA - 1][d.factorB - 1] += d.rendimiento;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(d => scTotal += Math.pow(d.rendimiento, 2));
+    scTotal = scTotal - fc;
+
+    let scA = 0;
+    sumaA.forEach(val => scA += Math.pow(val, 2));
+    scA = (scA / (b * r)) - fc;
+
+    let scParcelasP = 0;
+    for (let i = 0; i < a; i++) {
+        for (let k = 0; k < r; k++) {
+            scParcelasP += Math.pow(sumaRepA[i][k], 2);
+        }
+    }
+    scParcelasP = (scParcelasP / b) - fc;
+
+    const scErrorA = scParcelasP - scA;
+
+    let scB = 0;
+    sumaB.forEach(val => scB += Math.pow(val, 2));
+    scB = (scB / (a * r)) - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < a; i++) {
+        for (let j = 0; j < b; j++) {
+            scTratamientos += Math.pow(sumaAB[i][j], 2);
+        }
+    }
+    scTratamientos = (scTratamientos / r) - fc;
+
+    const scAB = scTratamientos - scA - scB;
+
+    const scErrorB = scTotal - scParcelasP - scB - scAB;
+
+    const glA = a - 1;
+    const glErrorA = a * (r - 1);
+    const glB = b - 1;
+    const glAB = (a - 1) * (b - 1);
+    const glErrorB = a * (b - 1) * (r - 1);
+    const glTotal = N - 1;
+
+    const cmA = scA / glA;
+    const cmErrorA = scErrorA / glErrorA;
+    const cmB = scB / glB;
+    const cmAB = scAB / glAB;
+    const cmErrorB = scErrorB / glErrorB;
+
+    const fCalcA = cmA / cmErrorA;
+    const fCalcB = cmB / cmErrorB;
+    const fCalcAB = cmAB / cmErrorB;
+
+    const calcStats = (fCalc: number, gl: number, glErr: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glErr);
+        const f01 = jStat.centralF.inv(0.99, gl, glErr);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glErr);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsA = calcStats(fCalcA, glA, glErrorA);
+    const statsB = calcStats(fCalcB, glB, glErrorB);
+    const statsAB = calcStats(fCalcAB, glAB, glErrorB);
+
+    return {
+        scA, scErrorA, scB, scAB, scErrorB, scTotal,
+        glA, glErrorA, glB, glAB, glErrorB, glTotal,
+        cmA, cmErrorA, cmB, cmAB, cmErrorB,
+        fCalcA, fCalcB, fCalcAB,
+        fCrit05A: statsA.f05, fCrit01A: statsA.f01,
+        fCrit05B: statsB.f05, fCrit01B: statsB.f01,
+        fCrit05AB: statsAB.f05, fCrit01AB: statsAB.f01,
+        pValueA: statsA.pVal, pValueB: statsB.pVal, pValueAB: statsAB.pVal,
+        conclusionA: statsA.conclusion, conclusionB: statsB.conclusion, conclusionAB: statsAB.conclusion
+    };
+}
+
+// __________PD DCA_____________________________
