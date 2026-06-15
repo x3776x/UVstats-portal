@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { act, useState } from 'react';
 import Link from 'next/link';
 
 import { ANOVA_MODELS, AnovaModelKey } from '../data/anovaModels';
@@ -10,6 +10,9 @@ import DCAInterface from '../../components/anova/DCAInterface';
 import DCADRInterface from '../../components/anova/DCADRInterface';
 import DBAInterface from '@/components/anova/DBAInterface';
 import DBAFaltanteInterface from '@/components/anova/DBAFaltanteInterface';
+import DCLInterface from '@/components/anova/DCLInterface';
+import BifactorialDCAInterface from '@/components/anova/BifactorialDCAInterface';
+import DCLFaltanteInterface from '@/components/anova/DCLFaltanteInterface';
 
 
 export default function AnovaPage() {
@@ -64,8 +67,11 @@ export default function AnovaPage() {
           {activeKey === 'DCA_DR' && <DCADRInterface />}
           {activeKey === 'DBA' && <DBAInterface />}
           {activeKey === 'DBA_DF' && <DBAFaltanteInterface />}
+          {activeKey === 'DCL' && <DCLInterface />}
+          {activeKey === 'DCL_DF' && <DCLFaltanteInterface />}
+          {activeKey === 'BIF_DCA' && <BifactorialDCAInterface />}
           
-          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF'].includes(activeKey) && (
+          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF', 'DCL', 'DCL_DF', 'BIF_DCA'].includes(activeKey) && (
              <EmptyState modelName={activeModel.fullName} />
           )}
         </div>

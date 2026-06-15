@@ -359,3 +359,352 @@ export function calculateDBAFaltante(tratamientos: number, bloques: number, dato
 }
 // ___________DBA DF_________________________
 
+// __________DCL ____________________________
+export interface DataRowDCL {
+    id: string;
+    fila: number;
+    columna: number;
+    tratamiento: string;
+    produccion: number;
+}
+
+export interface AnovaResultDCL {
+    scTratamientos: number; scFilas: number; scColumnas: number; scError: number; scTotal: number;
+    glTratamientos: number; glFilas: number; glColumnas: number; glError: number; glTotal: number;
+    cmTratamientos: number; cmFilas: number; cmColumnas: number; cmError: number;
+    fCalcTrat: number; fCalcFilas: number; fCalcCol: number;
+    fCrit05Trat: number; fCrit01Trat: number;
+    fCrit05Filas: number; fCrit01Filas: number;
+    fCrit05Col: number; fCrit01Col: number;
+    pValueTrat: number; pValueFilas: number; pValueCol: number;
+    conclusionTrat: string; conclusionFilas: string; conclusionCol: string;
+}
+
+export function calculateDCL(n: number, datos: DataRowDCL[]): AnovaResultDCL {
+    const N = Math.pow(n, 2);
+
+    let sumaTotal = 0;
+    const sumaFilas = new Map<number, number>();
+    const sumaColumnas = new Map<number, number>();
+    const sumaTratamientos = new Map<string, { suma: number, count: number }>();
+
+    datos.forEach(d => {
+        sumaTotal += d.produccion;
+
+        sumaFilas.set(d.fila, (sumaFilas.get(d.fila) || 0) + d.produccion);
+        sumaColumnas.set(d.columna, (sumaColumnas.get(d.columna) || 0) + d.produccion);
+
+        if (!sumaTratamientos.has(d.tratamiento)) {
+            sumaTratamientos.set(d.tratamiento, { suma: 0, count: 0 });
+        }
+        const trat = sumaTratamientos.get(d.tratamiento)!;
+        trat.suma += d.produccion;
+        trat.count += 1;
+    });
+
+    sumaTratamientos.forEach((trat, key) => {
+        if (trat.count !== n) throw new Error(`El tratamiento ${key} no aparece exactamente ${n} veces.`);
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(d => scTotal += Math.pow(d.produccion, 2));
+    scTotal = scTotal - fc;
+
+    let scFilas = 0;
+    sumaFilas.forEach(suma => scFilas += Math.pow(suma, 2));
+    scFilas = (scFilas / n) - fc;
+
+    let scColumnas = 0;
+    sumaColumnas.forEach(suma => scColumnas += Math.pow(suma, 2));
+    scColumnas = (scColumnas / n) - fc;
+
+    let scTratamientos = 0;
+    sumaTratamientos.forEach(trat => scTratamientos += Math.pow(trat.suma, 2));
+    scTratamientos = (scTratamientos / n) - fc;
+
+    const scError = scTotal - scFilas - scColumnas - scTratamientos;
+
+    const glTratamientos = n - 1;
+    const glFilas = n - 1;
+    const glColumnas = n - 1;
+    const glError = (n - 1) * (n - 2);
+    const glTotal = N - 1;
+
+    const cmTratamientos = scTratamientos / glTratamientos;
+    const cmFilas = scFilas / glFilas;
+    const cmColumnas = scColumnas / glColumnas;
+    const cmError = glError > 0 ? scError / glError : 0; 
+
+    if (glError === 0) {
+        throw new Error("Un Cuadro Latino 2x2 no deja grados de libertad para el error. Se requiere al menos un 3x3.");
+    }
+
+    const fCalcTrat = cmTratamientos / cmError;
+    const fCalcFilas = cmFilas / cmError;
+    const fCalcCol = cmColumnas / cmError;
+
+    const calcStats = (fCalc: number, gl: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glError);
+        const f01 = jStat.centralF.inv(0.99, gl, glError);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glError);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsTrat = calcStats(fCalcTrat, glTratamientos);
+    const statsFilas = calcStats(fCalcFilas, glFilas);
+    const statsCol = calcStats(fCalcCol, glColumnas);
+
+    return {
+        scTratamientos, scFilas, scColumnas, scError, scTotal,
+        glTratamientos, glFilas, glColumnas, glError, glTotal,
+        cmTratamientos, cmFilas, cmColumnas, cmError,
+        fCalcTrat, fCalcFilas, fCalcCol,
+        fCrit05Trat: statsTrat.f05, fCrit01Trat: statsTrat.f01, pValueTrat: statsTrat.pVal, conclusionTrat: statsTrat.conclusion,
+        fCrit05Filas: statsFilas.f05, fCrit01Filas: statsFilas.f01, pValueFilas: statsFilas.pVal, conclusionFilas: statsFilas.conclusion,
+        fCrit05Col: statsCol.f05, fCrit01Col: statsCol.f01, pValueCol: statsCol.pVal, conclusionCol: statsCol.conclusion,
+    };
+}
+// _________DCL______________________________
+
+//__________DCL DF___________________________
+export interface DataRowDCLFaltante {
+    id: string;
+    fila: number;
+    columna: number;
+    tratamiento: string;
+    produccion: number | null; // null indica el dato faltante
+}
+
+export interface AnovaResultDCLFaltante extends AnovaResultDCL {
+    valorEstimado: number;
+    filaFaltante: number;
+    colFaltante: number;
+    tratFaltante: string;
+}
+
+export function calculateDCLFaltante(n: number, datos: DataRowDCLFaltante[]): AnovaResultDCLFaltante {
+    const faltantes = datos.filter(d => d.produccion === null);
+    if (faltantes.length !== 1) {
+        throw new Error("El modelo requiere exactamente UN dato faltante (celda vacía).");
+    }
+    const faltante = faltantes[0];
+
+    let F = 0; let C = 0; let T = 0; let S = 0;
+    
+    datos.forEach(d => {
+        if (d.produccion !== null) {
+            S += d.produccion;
+            if (d.fila === faltante.fila) F += d.produccion;
+            if (d.columna === faltante.columna) C += d.produccion;
+            if (d.tratamiento === faltante.tratamiento) T += d.produccion;
+        }
+    });
+
+    if (n < 3) throw new Error("Un Cuadro Latino con dato faltante debe ser de al menos 3x3.");
+    
+    const x = ((n * (F + C + T)) - (2 * S)) / ((n - 1) * (n - 2));
+
+    const datosCompletos = datos.map(d => ({
+        ...d,
+        produccion: d.produccion === null ? x : d.produccion
+    }));
+
+    let sumaTotal = 0;
+    const sumaFilas = new Map<number, number>();
+    const sumaColumnas = new Map<number, number>();
+    const sumaTratamientos = new Map<string, { suma: number, count: number }>();
+
+    datosCompletos.forEach(d => {
+        sumaTotal += d.produccion;
+        sumaFilas.set(d.fila, (sumaFilas.get(d.fila) || 0) + d.produccion);
+        sumaColumnas.set(d.columna, (sumaColumnas.get(d.columna) || 0) + d.produccion);
+
+        if (!sumaTratamientos.has(d.tratamiento)) {
+            sumaTratamientos.set(d.tratamiento, { suma: 0, count: 0 });
+        }
+        const trat = sumaTratamientos.get(d.tratamiento)!;
+        trat.suma += d.produccion;
+        trat.count += 1;
+    });
+
+    const N = Math.pow(n, 2);
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datosCompletos.forEach(d => scTotal += Math.pow(d.produccion, 2));
+    scTotal = scTotal - fc;
+
+    let scFilas = 0;
+    sumaFilas.forEach(suma => scFilas += Math.pow(suma, 2));
+    scFilas = (scFilas / n) - fc;
+
+    let scColumnas = 0;
+    sumaColumnas.forEach(suma => scColumnas += Math.pow(suma, 2));
+    scColumnas = (scColumnas / n) - fc;
+
+    let scTratamientos = 0;
+    sumaTratamientos.forEach(trat => scTratamientos += Math.pow(trat.suma, 2));
+    scTratamientos = (scTratamientos / n) - fc;
+
+    const scError = scTotal - scFilas - scColumnas - scTratamientos;
+
+    const glTratamientos = n - 1;
+    const glFilas = n - 1;
+    const glColumnas = n - 1;
+    const glTotal = N - 2;
+    const glError = ((n - 1) * (n - 2)) - 1;
+
+    if (glError <= 0) {
+        throw new Error("No hay suficientes grados de libertad en el Error para realizar el cálculo F.");
+    }
+
+    const cmTratamientos = scTratamientos / glTratamientos;
+    const cmFilas = scFilas / glFilas;
+    const cmColumnas = scColumnas / glColumnas;
+    const cmError = scError / glError;
+
+    const fCalcTrat = cmTratamientos / cmError;
+    const fCalcFilas = cmFilas / cmError;
+    const fCalcCol = cmColumnas / cmError;
+
+    const calcStats = (fCalc: number, gl: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glError);
+        const f01 = jStat.centralF.inv(0.99, gl, glError);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glError);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsTrat = calcStats(fCalcTrat, glTratamientos);
+    const statsFilas = calcStats(fCalcFilas, glFilas);
+    const statsCol = calcStats(fCalcCol, glColumnas);
+
+    return {
+        scTratamientos, scFilas, scColumnas, scError, scTotal,
+        glTratamientos, glFilas, glColumnas, glError, glTotal,
+        cmTratamientos, cmFilas, cmColumnas, cmError,
+        fCalcTrat, fCalcFilas, fCalcCol,
+        fCrit05Trat: statsTrat.f05, fCrit01Trat: statsTrat.f01, pValueTrat: statsTrat.pVal, conclusionTrat: statsTrat.conclusion,
+        fCrit05Filas: statsFilas.f05, fCrit01Filas: statsFilas.f01, pValueFilas: statsFilas.pVal, conclusionFilas: statsFilas.conclusion,
+        fCrit05Col: statsCol.f05, fCrit01Col: statsCol.f01, pValueCol: statsCol.pVal, conclusionCol: statsCol.conclusion,
+        valorEstimado: x,
+        filaFaltante: faltante.fila,
+        colFaltante: faltante.columna,
+        tratFaltante: faltante.tratamiento
+    };
+}
+// _________DCL DF___________________________
+
+// _________Bi DCA___________________________
+export interface DataRowBiDCA {
+    id: string;
+    factorA: number;
+    factorB: number;
+    repeticion: number;
+    rendimiento: number;
+}
+
+export interface AnovaResultBiDCA {
+    scA: number; scB: number; scAB: number; scError: number; scTotal: number;
+    glA: number; glB: number; glAB: number; glError: number; glTotal: number;
+    cmA: number; cmB: number; cmAB: number; cmError: number;
+    fCalcA: number; fCalcB: number; fCalcAB: number;
+    fCrit05A: number; fCrit01A: number;
+    fCrit05B: number; fCrit01B: number;
+    fCrit05AB: number; fCrit01AB: number;
+    pValueA: number; pValueB: number; pValueAB: number;
+    conclusionA: string; conclusionB: string; conclusionAB: string;
+}
+
+export function calculateBifactorialDCA(a: number, b: number, r: number, datos: DataRowBiDCA[]): AnovaResultBiDCA {
+    const N = a * b * r;
+
+    let sumaTotal = 0;
+    const sumaA = new Array(a).fill(0);
+    const sumaB = new Array(b).fill(0);
+    const sumaAB = Array.from({ length: a }, () => new Array(b).fill(0));
+
+    datos.forEach(d => {
+        sumaTotal += d.rendimiento;
+        sumaA[d.factorA - 1] += d.rendimiento;
+        sumaB[d.factorB - 1] += d.rendimiento;
+        sumaAB[d.factorA - 1][d.factorB - 1] += d.rendimiento;
+    });
+
+    const fc = Math.pow(sumaTotal, 2) / N;
+
+    let scTotal = 0;
+    datos.forEach(d => scTotal += Math.pow(d.rendimiento, 2));
+    scTotal = scTotal - fc;
+
+    let scA = 0;
+    sumaA.forEach(val => scA += Math.pow(val, 2));
+    scA = (scA / (b * r)) - fc;
+
+    let scB = 0;
+    sumaB.forEach(val => scB += Math.pow(val, 2));
+    scB = (scB / (a * r)) - fc;
+
+    let scTratamientos = 0;
+    for (let i = 0; i < a; i++) {
+        for (let j = 0; j < b; j++) {
+            scTratamientos += Math.pow(sumaAB[i][j], 2);
+        }
+    }
+    scTratamientos = (scTratamientos / r) - fc;
+
+    const scAB = scTratamientos - scA - scB;
+    const scError = scTotal - scTratamientos;
+
+    const glA = a - 1;
+    const glB = b - 1;
+    const glAB = (a - 1) * (b - 1);
+    const glTotal = N - 1;
+    const glError = a * b * (r - 1);
+
+    const cmA = scA / glA;
+    const cmB = scB / glB;
+    const cmAB = scAB / glAB;
+    const cmError = scError / glError;
+
+    const fCalcA = cmA / cmError;
+    const fCalcB = cmB / cmError;
+    const fCalcAB = cmAB / cmError;
+
+    const calcStats = (fCalc: number, gl: number) => {
+        const f05 = jStat.centralF.inv(0.95, gl, glError);
+        const f01 = jStat.centralF.inv(0.99, gl, glError);
+        const pVal = 1 - jStat.centralF.cdf(fCalc, gl, glError);
+        let conclusion = "NS - No Significativo";
+        if (fCalc > f01) conclusion = "** - Altamente significativo";
+        else if (fCalc > f05) conclusion = "* - Significativo al 5%";
+        return { f05, f01, pVal, conclusion };
+    };
+
+    const statsA = calcStats(fCalcA, glA);
+    const statsB = calcStats(fCalcB, glB);
+    const statsAB = calcStats(fCalcAB, glAB);
+
+    return {
+        scA, scB, scAB, scError, scTotal,
+        glA, glB, glAB, glError, glTotal,
+        cmA, cmB, cmAB, cmError,
+        fCalcA, fCalcB, fCalcAB,
+        fCrit05A: statsA.f05, fCrit01A: statsA.f01,
+        fCrit05B: statsB.f05, fCrit01B: statsB.f01,
+        fCrit05AB: statsAB.f05, fCrit01AB: statsAB.f01,
+        pValueA: statsA.pVal, pValueB: statsB.pVal, pValueAB: statsAB.pVal,
+        conclusionA: statsA.conclusion, conclusionB: statsB.conclusion, conclusionAB: statsAB.conclusion
+    };
+}
+// __________Bi DCA_____________________________
+
+// __________
