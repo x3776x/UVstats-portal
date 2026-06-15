@@ -77,7 +77,7 @@ export default function DBAInterface() {
                                     id: row.id,
                                     tratamiento: row.tratamiento,
                                     bloque: row.repeticion, 
-                                    produccion: row.produccion.toString()
+                                    produccion: row.produccion!.toString()
                                 }));
                                 setTableData(mappedData);
                                 
