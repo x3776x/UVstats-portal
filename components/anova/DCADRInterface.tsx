@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import MethodCard from "../MethodCard";
-import { calculateDCADR, AnovaResult } from "@/utils/anovaCalculator";
+import Toast from "../Toast";
+import { calculateDCADR, AnovaResult, formatPValue } from "@/utils/anovaCalculator";
+import { useToast } from "@/hooks/useToast";
 
 interface DataRow {
     id: string;
@@ -13,6 +15,7 @@ interface DataRow {
 
 export default function DCADRInterface() {
     const [ method, setMethod ] = useState<'manual' | 'excel' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [ totalDatos, setTotalDatos ] = useState('');
     const [ resultados, setResultados ] = useState<AnovaResult | null>(null);
     
@@ -25,7 +28,7 @@ export default function DCADRInterface() {
         const total = parseInt(totalDatos);
 
         if (isNaN(total) || total <= 0) {
-            alert("Ingresa un valor mayor a 0");
+            showToast("Ingresa un valor mayor a 0", "error");
             return;
         }
 
@@ -165,7 +168,7 @@ export default function DCADRInterface() {
                                         // 1. Check for empty fields
                                         const hasEmptyFields = tableData.some(row => row.tratamiento === '' || row.produccion === '');
                                         if (hasEmptyFields) {
-                                            alert("Por favor, llena todos los campos de Tratamiento y Producción.");
+                                            showToast("Por favor, llena todos los campos de Tratamiento y Producción.", "error");
                                             return;
                                         }
 
@@ -178,7 +181,7 @@ export default function DCADRInterface() {
                                         // 3. Check if there are at least 2 unique treatments
                                         const uniqueTreatments = new Set(formattedData.map(d => d.tratamiento));
                                         if (uniqueTreatments.size < 2) {
-                                            alert("Se requieren al menos 2 tratamientos diferentes para calcular el ANOVA.");
+                                            showToast("Se requieren al menos 2 tratamientos diferentes para calcular el ANOVA.", "error");
                                             return;
                                         }
 
@@ -188,7 +191,7 @@ export default function DCADRInterface() {
 
                                     } catch (error) {
                                         console.error(error);
-                                        alert("Ocurrió un error en el cálculo. Verifica los datos ingresados.");
+                                        showToast("Ocurrió un error en el cálculo. Verifica los datos ingresados.", "error");
                                     }
                                 }}>
                                 Calcular ANOVA
@@ -254,11 +257,17 @@ export default function DCADRInterface() {
                         </div>
                         <div className="mt-2 sm:mt-0 text-right">
                             <p className="text-xs text-blue-600 font-semibold">Valor P exacto:</p>
-                            <p className="text-sm font-mono text-blue-800">{resultados.pValue.toExponential(4)}</p>
+                            <p className="text-sm font-mono text-blue-800">{formatPValue(resultados.pValue)}</p>
                         </div>
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

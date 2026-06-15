@@ -39,16 +39,18 @@ export async function parseAnovaFile(file: File): Promise<DataRow[]> {
                     const row = rawRows[i];
 
                     // Empty rows 
-                    if (!row || row.length === 0 || row[0] === undefined || row[1] === undefined) {
+                    if (!row || row.length === 0 || row[0] === undefined || row[0] === null || String(row[0]).trim() === '') {
                         continue; 
                     }
 
-                    // Convert to numbers and clean up whitespace if it was text
                     const tratamiento = Number(row[0]);
-                    const produccion = Number(row[1]);
+                    
+                    let produccion: number | null = null;
+                    if (row[1] !== undefined && row[1] !== null && String(row[1]).trim() !== '') {
+                        produccion = Number(row[1]);
+                    }
 
-                    // Garbage data
-                    if (isNaN(tratamiento) || isNaN(produccion)) {
+                    if (isNaN(tratamiento) || (produccion !== null && isNaN(produccion))) {
                         return reject(new Error(`Datos inválidos en la fila ${i + 1}. Asegúrate de usar solo números.`));
                     }
 

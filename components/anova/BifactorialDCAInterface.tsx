@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { calculateBifactorialDCA, AnovaResultBiDCA, DataRowBiDCA } from '../../utils/anovaCalculator';
 
 export default function BifactorialDCAInterface() {
     const [method, setMethod] = useState<'manual' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [nivelesA, setNivelesA] = useState('');
     const [nivelesB, setNivelesB] = useState('');
     const [repeticiones, setRepeticiones] = useState('');
@@ -20,7 +23,7 @@ export default function BifactorialDCAInterface() {
         const r = parseInt(repeticiones);
 
         if (isNaN(a) || isNaN(b) || isNaN(r) || a < 2 || b < 2 || r < 2) {
-            alert("Ingresa valores válidos. Se requieren al menos 2 niveles para cada factor y 2 repeticiones.");
+            showToast("Ingresa valores válidos. Se requieren al menos 2 niveles para cada factor y 2 repeticiones.", "error");
             return;
         }
 
@@ -111,14 +114,14 @@ export default function BifactorialDCAInterface() {
                             onClick={() => {
                                 try {
                                     const hasEmpty = tableData.some(r => r.rendimiento.trim() === '');
-                                    if (hasEmpty) { alert("Llena todos los campos de rendimiento."); return; }
+                                    if (hasEmpty) { showToast("Llena todos los campos de rendimiento.", "error"); return; }
 
                                     const formattedData: DataRowBiDCA[] = tableData.map(row => ({
                                         ...row, rendimiento: parseFloat(row.rendimiento) || 0
                                     }));
                                     
                                     setResultados(calculateBifactorialDCA(parseInt(nivelesA), parseInt(nivelesB), parseInt(repeticiones), formattedData));
-                                } catch (error) { alert("Ocurrió un error al calcular."); }
+                                } catch (error) { showToast("Ocurrió un error al calcular.", "error"); }
                             }}>
                             Calcular ANOVA
                         </button>
@@ -205,6 +208,12 @@ export default function BifactorialDCAInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

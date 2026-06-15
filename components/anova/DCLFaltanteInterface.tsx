@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { calculateDCLFaltante, AnovaResultDCLFaltante, DataRowDCLFaltante } from '../../utils/anovaCalculator';
 
 export default function DCLFaltanteInterface() {
     const [method, setMethod] = useState<'manual' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [orden, setOrden] = useState('');
     
     const [tableData, setTableData] = useState<{id: string, fila: number, columna: number, tratamiento: string, produccion: string}[]>([]);
@@ -15,7 +18,7 @@ export default function DCLFaltanteInterface() {
     const handleGenerateTable = () => {
         const n = parseInt(orden);
         if (isNaN(n) || n < 3) {
-            alert("Para estimar un dato en un DCL, el orden mínimo debe ser 3.");
+            showToast("Para estimar un dato en un DCL, el orden mínimo debe ser 3.", "error");
             return;
         }
 
@@ -94,7 +97,7 @@ export default function DCLFaltanteInterface() {
                                 try {
                                     const n = parseInt(orden);
                                     if (tableData.some(r => r.tratamiento.trim() === '')) {
-                                        alert("Debes llenar la columna de Tratamientos para todos los datos.");
+                                        showToast("Debes llenar la columna de Tratamientos para todos los datos.", "error");
                                         return;
                                     }
 
@@ -104,7 +107,7 @@ export default function DCLFaltanteInterface() {
                                     }));
                                     
                                     setResultados(calculateDCLFaltante(n, formattedData));
-                                } catch (error: any) { alert(error.message); }
+                                } catch (error: any) { showToast("${error.message}", "error"); }
                             }}>
                             Estimar y Calcular DCL
                         </button>
@@ -193,6 +196,12 @@ export default function DCLFaltanteInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

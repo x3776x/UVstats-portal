@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { parseAnovaFile } from '../../utils/fileParser';
-import { calculateDBA, AnovaResultDBA, DataRowDBA } from '../../utils/anovaCalculator';
+import { calculateDBA, AnovaResultDBA, DataRowDBA, formatPValue } from '../../utils/anovaCalculator';
 
 export default function DBAInterface() {
     const [method, setMethod] = useState<'manual' | 'excel' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [tratamientos, setTratamientos] = useState('');
     const [bloques, setBloques] = useState('');
     
@@ -19,7 +22,7 @@ export default function DBAInterface() {
         const b = parseInt(bloques);
 
         if (isNaN(t) || isNaN(b) || t <= 0 || b <= 0) {
-            alert("Por favor, ingresa valores válidos mayores a 0.");
+            showToast("Por favor, ingresa valores válidos mayores a 0.", "error");
             return;
         }
 
@@ -83,7 +86,7 @@ export default function DBAInterface() {
                                 setIsTableGenerated(true);
                                 setMethod('manual');
                                 setResultados(null);
-                            } catch (error: any) { alert(error.message); }
+                            } catch (error: any) { showToast("${error.message}", "error"); }
                         }}
                         className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
@@ -142,7 +145,7 @@ export default function DBAInterface() {
                                 try {
                                     const t = parseInt(tratamientos);
                                     const b = parseInt(bloques);
-                                    if (t < 2 || b < 2) { alert("Se requieren al menos 2 tratamientos y 2 bloques."); return; }
+                                    if (t < 2 || b < 2) { showToast("Se requieren al menos 2 tratamientos y 2 bloques.", "error"); return; }
                                     
                                     const formattedData: DataRowDBA[] = tableData.map(row => ({
                                         id: row.id, tratamiento: row.tratamiento, bloque: row.bloque,
@@ -150,7 +153,7 @@ export default function DBAInterface() {
                                     }));
                                     
                                     setResultados(calculateDBA(t, b, formattedData));
-                                } catch (error) { alert("Ocurrió un error al calcular."); }
+                                } catch (error) { showToast("Ocurrió un error al calcular.", "error"); }
                             }}>
                             Calcular ANOVA
                         </button>
@@ -228,6 +231,12 @@ export default function DBAInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

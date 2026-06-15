@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
+import { parseAnovaFile } from '@/utils/fileParser';
 import { calculateDBAFaltante, AnovaResultDBAFaltante, DataRowDBAFaltante } from '../../utils/anovaCalculator';
 
 export default function DBAFaltanteInterface() {
-    const [method, setMethod] = useState<'manual' | null>(null);
+    const [method, setMethod] = useState<'manual' | 'excel' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [tratamientos, setTratamientos] = useState('');
     const [bloques, setBloques] = useState('');
     
@@ -18,7 +22,7 @@ export default function DBAFaltanteInterface() {
         const b = parseInt(bloques);
 
         if (isNaN(t) || isNaN(b) || t <= 0 || b <= 0) {
-            alert("Por favor, ingresa valores mayores a 0.");
+            showToast("Por favor, ingresa valores mayores a 0.", "error");
             return;
         }
 
@@ -42,9 +46,52 @@ export default function DBAFaltanteInterface() {
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <MethodCard icon="📁" label="Cargar datos (Excel/CSV)" isActive={method === 'excel'} onClick={() => { setMethod('excel'); setIsTableGenerated(false); setTableData([]); setResultados(null); }} />
                 <MethodCard icon="⌨️" label="Introducir datos (Manual)" isActive={method === 'manual'} onClick={() => { setMethod('manual'); setIsTableGenerated(false); setTableData([]); setResultados(null); }} />
                 
             </div>
+
+            {method === 'excel' && (
+                <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    <label className="block font-medium text-gray-700">Selecciona un archivo Excel/CSV:</label>
+                    <input
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onClick={(e) => (e.currentTarget.value = '')}
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                                const extractedData = await parseAnovaFile(file);
+                                
+                                const mappedData = extractedData.map(row => ({
+                                    id: row.id,
+                                    tratamiento: row.tratamiento,
+                                    bloque: row.repeticion, 
+                                    // Si es null, lo pasamos como string vacío para que el input se vea en blanco
+                                    produccion: row.produccion === null ? '' : String(row.produccion)
+                                }));
+                                
+                                setTableData(mappedData);
+                                
+                                setTratamientos(Math.max(...mappedData.map(d => d.tratamiento)).toString());
+                                setBloques(Math.max(...mappedData.map(d => d.bloque)).toString());
+                                setIsTableGenerated(true);
+                                
+                                setMethod('manual'); 
+                                setResultados(null);
+                                showToast("Archivo cargado. Verifica que el dato faltante esté en blanco.", "success");
+                            } catch (error: any) { 
+                                showToast(error.message || "Error al leer el archivo", "error"); 
+                            }
+                        }}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <p className="text-xs text-gray-400">
+                        Asegúrate de dejar <b>una celda vacía</b> en la columna de Producción de tu Excel.
+                    </p>
+                </div>
+            )}
 
             {method === 'manual' && !isTableGenerated && (
                 <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
@@ -86,7 +133,7 @@ export default function DBAFaltanteInterface() {
                                         <td className="px-6 py-3 font-medium text-gray-900">Trat. {row.tratamiento}</td>
                                         <td className="px-6 py-3">Bloque {row.bloque}</td>
                                         <td className="px-6 py-2">
-                                            <input type="number" value={row.produccion} onChange={(e) => handleInputChange(row.id, e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 placeholder-red-300" placeholder="Vació = Faltante" />
+                                            <input type="number" value={row.produccion} onChange={(e) => handleInputChange(row.id, e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 placeholder-red-300" placeholder="Vacio = Faltante" />
                                         </td>
                                     </tr>
                                 ))}
@@ -105,7 +152,7 @@ export default function DBAFaltanteInterface() {
                                     
                                     setResultados(calculateDBAFaltante(parseInt(tratamientos), parseInt(bloques), formattedData));
                                 } catch (error: any) { 
-                                    alert(error.message); 
+                                    showToast("${error.message}", "error"); 
                                 }
                             }}>
                             Estimar y Calcular
@@ -187,6 +234,12 @@ export default function DBAFaltanteInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

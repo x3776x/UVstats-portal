@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { calculatePDDBA, AnovaResultPDDBA, DataRowPDDBA } from '../../utils/anovaCalculator';
 
 export default function PDDBAInterface() {
     const [method, setMethod] = useState<'manual' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [nivelesA, setNivelesA] = useState(''); // Parcelas Principales
     const [nivelesB, setNivelesB] = useState(''); // Sub-parcelas
     const [bloques, setBloques] = useState('');
@@ -20,7 +23,7 @@ export default function PDDBAInterface() {
         const r = parseInt(bloques);
 
         if (isNaN(a) || isNaN(b) || isNaN(r) || a < 2 || b < 2 || r < 2) {
-            alert("Se requieren al menos 2 niveles para cada factor y 2 bloques.");
+            showToast("Se requieren al menos 2 niveles para cada factor y 2 bloques.", "error");
             return;
         }
 
@@ -111,14 +114,14 @@ export default function PDDBAInterface() {
                             onClick={() => {
                                 try {
                                     const hasEmpty = tableData.some(r => r.rendimiento.trim() === '');
-                                    if (hasEmpty) { alert("Llena todos los campos de rendimiento."); return; }
+                                    if (hasEmpty) { showToast("Llena todos los campos de rendimiento.", "error"); return; }
 
                                     const formattedData: DataRowPDDBA[] = tableData.map(row => ({
                                         ...row, rendimiento: parseFloat(row.rendimiento) || 0
                                     }));
                                     
                                     setResultados(calculatePDDBA(parseInt(nivelesA), parseInt(nivelesB), parseInt(bloques), formattedData));
-                                } catch (error) { alert("Ocurrió un error al calcular."); }
+                                } catch (error) { showToast("Ocurrió un error al calcular.", "error"); }
                             }}>
                             Calcular ANOVA PD-DBA
                         </button>
@@ -241,6 +244,12 @@ export default function PDDBAInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }

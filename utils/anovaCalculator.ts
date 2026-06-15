@@ -1,10 +1,17 @@
 import { jStat } from 'jstat';
 
+export function formatPValue(p: number): string {
+    if (p < 0.0001) {
+        return "< 0.0001";
+    }
+    return p.toFixed(6);
+}
+
 export interface DataRow {
     id: string;
     tratamiento: number;
     repeticion: number;
-    produccion: number;
+    produccion: number | null;
 }
 
 export interface AnovaResult {
@@ -31,7 +38,7 @@ export function calculateDCA(tratamientos: number, repeticiones: number, datos: 
     const sumaTratamientos = new Array(tratamientos).fill(0);
 
     datos.forEach(fila => {
-        sumaTotal += fila.produccion;
+        sumaTotal += fila.produccion || 0;
         sumaTratamientos[fila.tratamiento - 1] += fila.produccion;
     });
 
@@ -41,7 +48,7 @@ export function calculateDCA(tratamientos: number, repeticiones: number, datos: 
     // 3. Sum of Squares (SC)
     let scTotal = 0;
     datos.forEach(fila => {
-        scTotal += Math.pow(fila.produccion, 2);
+        scTotal += Math.pow(fila.produccion || 0, 2);
     });
     scTotal = scTotal - fc;
 

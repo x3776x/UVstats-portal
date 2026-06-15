@@ -4,7 +4,7 @@ import { useState } from 'react';
 import MethodCard from '../MethodCard';
 import Toast from '../Toast';
 import { useToast } from '@/hooks/useToast';
-import { calculateDCA, AnovaResult } from '../../utils/anovaCalculator';
+import { calculateDCA, AnovaResult, formatPValue } from '../../utils/anovaCalculator';
 import { parseAnovaFile } from '../../utils/fileParser';
 
 // 1. Define the shape of a single row of data
@@ -319,7 +319,7 @@ export default function DCAInterface() {
                         </div>
                         <div className="mt-2 sm:mt-0 text-right">
                             <p className="text-xs text-blue-600 font-semibold">Valor P exacto:</p>
-                            <p className="text-sm font-mono text-blue-800">{resultados.pValue.toExponential(4)}</p>
+                            <p className="text-sm font-mono text-blue-800">{formatPValue(resultados.pValue)}</p>
                         </div>
                     </div>
                 </div>

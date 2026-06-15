@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
+import Toast from '../Toast';
+import { useToast } from '@/hooks/useToast';
 import { calculateDCL, AnovaResultDCL, DataRowDCL } from '../../utils/anovaCalculator';
 
 export default function DCLInterface() {
     const [method, setMethod] = useState<'manual' | null>(null);
+    const { toast, showToast, hideToast } = useToast();
     const [orden, setOrden] = useState('');
     
     const [tableData, setTableData] = useState<{id: string, fila: number, columna: number, tratamiento: string, produccion: string}[]>([]);
@@ -15,7 +18,7 @@ export default function DCLInterface() {
     const handleGenerateTable = () => {
         const n = parseInt(orden);
         if (isNaN(n) || n < 3) {
-            alert("El orden del diseño debe ser al menos 3 (un cuadro 3x3). Un 2x2 no tiene error experimental.");
+            showToast("El orden del diseño debe ser al menos 3 (un cuadro 3x3). Un 2x2 no tiene error experimental.", "error");
             return;
         }
 
@@ -93,7 +96,7 @@ export default function DCLInterface() {
                                 try {
                                     const n = parseInt(orden);
                                     const hasEmptyFields = tableData.some(r => r.tratamiento.trim() === '' || r.produccion.trim() === '');
-                                    if (hasEmptyFields) { alert("Llena todos los campos."); return; }
+                                    if (hasEmptyFields) { showToast("Llena todos los campos.", "error"); return; }
 
                                     const formattedData: DataRowDCL[] = tableData.map(row => ({
                                         id: row.id, fila: row.fila, columna: row.columna, tratamiento: row.tratamiento,
@@ -101,7 +104,7 @@ export default function DCLInterface() {
                                     }));
                                     
                                     setResultados(calculateDCL(n, formattedData));
-                                } catch (error: any) { alert(error.message); }
+                                } catch (error: any) { showToast("${error.message}", "error"); }
                             }}>
                             Calcular ANOVA DCL
                         </button>
@@ -191,6 +194,12 @@ export default function DCLInterface() {
                     </div>
                 </div>
             )}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
         </div>
     );
 }
