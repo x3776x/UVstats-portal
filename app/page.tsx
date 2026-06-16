@@ -3,9 +3,10 @@ import Link from "next/link";
 
 export default function Home() {
   const projects = [
-    { id: 1, title: "ANOVA", description: "descripcion...", icon: "/icons/ANOVAppPortada.png" },
-    { id: 2, title: "Regresion Lineal", description: "descripcion...", icon: null },
+    { id: 1, title: "ANOVA", description: "analisis de varianza", icon: "/icons/ANOVAppPortada.png" },
+    { id: 2, title: "Estadistica descriptiva", description: "descripcion...", icon: null },
     { id: 3, title: "Regresion Logistica", description: "descripcion...", icon: null },
+    { id: 4, title: "next example", description: "descripcion...", icon: null},
   ];
 
   return (

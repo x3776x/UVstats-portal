@@ -16,12 +16,13 @@ import BifactorialDBAInterface from '@/components/anova/BifactorialDBAInterface'
 import DCLFaltanteInterface from '@/components/anova/DCLFaltanteInterface';
 import PDDCAInterface from '@/components/anova/PDDCAInterface';
 import PDDBAInterface from '@/components/anova/PDDBAInterface';
+import AboutAnova from './aboutAnova';
 
 
 export default function AnovaPage() {
-  const [activeKey, setActiveKey] = useState<AnovaModelKey>('DCA');
+  const [activeKey, setActiveKey] = useState<AnovaModelKey | 'ABOUT'>('DCA');
 
-  const activeModel = ANOVA_MODELS.find((m) => m.key === activeKey)!;
+  const activeModel = ANOVA_MODELS.find((m) => m.key === activeKey);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
@@ -45,6 +46,19 @@ export default function AnovaPage() {
             />
           ))}
         </nav>
+
+        <div className="p-4 mt-auto border-t border-gray-200 hidden md:block">
+          <button
+            onClick={() => setActiveKey('ABOUT')}
+            className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+              activeKey === 'ABOUT' 
+                ? 'bg-blue-50 text-blue-700 font-medium' 
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            ℹ️ Acerca de ANOVA
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -54,17 +68,21 @@ export default function AnovaPage() {
             &larr; Volver al portal
           </Link>
         </div>
- 
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
-          <div className="mb-6 border-b pb-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 mb-1">
-              {activeModel.shortName}
-            </p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {activeModel.fullName}
-            </h1>
-          </div>
- 
+          
+          {/* Header titles (Only show if activeModel exists / is not ABOUT) */}
+          {activeModel && (
+            <div className="mb-6 border-b pb-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 mb-1">
+                {activeModel.shortName}
+              </p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {activeModel.fullName}
+              </h1>
+            </div>
+          )}
+
           {/* Render interface or WIP placeholder */}
           {activeKey === 'DCA' && <DCAInterface />}
           {activeKey === 'DCA_DR' && <DCADRInterface />}
@@ -76,10 +94,11 @@ export default function AnovaPage() {
           {activeKey === 'BIF_DBA' && <BifactorialDBAInterface />}
           {activeKey === 'PD_DCA' && <PDDCAInterface />}
           {activeKey === 'PD_DBA' && <PDDBAInterface />}
+
+          {activeKey === 'ABOUT' && <AboutAnova />}
           
-          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF', 'DCL', 'DCL_DF', 'BIF_DCA', 'BIF_DBA', 'PD_DCA', 'PD_DBA'].
-          includes(activeKey) && (
-             <EmptyState modelName={activeModel.fullName} />
+          {!['DCA', 'DCA_DR', 'DBA', 'DBA_DF', 'DCL', 'DCL_DF', 'BIF_DCA', 'BIF_DBA', 'PD_DCA', 'PD_DBA', 'ABOUT'].includes(activeKey) && (
+             <EmptyState modelName={activeModel?.fullName || 'Módulo'} />
           )}
         </div>
       </main>
