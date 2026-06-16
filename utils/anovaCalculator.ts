@@ -1,4 +1,5 @@
 import { jStat } from 'jstat';
+import * as XLSX from 'xlsx';
 
 export function formatPValue(p: number): string {
     if (p < 0.0001) {
@@ -373,6 +374,75 @@ export interface DataRowDCL {
     columna: number;
     tratamiento: string;
     produccion: number;
+}
+
+export interface DataRowDCLParsed {
+    id: string;
+    fila: number;
+    columna: number;
+    tratamiento: string;
+    produccion: number | null;
+}
+
+export async function parseDCLFile(file: File): Promise<DataRowDCLParsed[]> {
+    return new Promise((resolve, reject) => {
+        const validExtensions = ['csv', 'xls', 'xlsx'];
+        const fileExt = file.name.split('.').pop()?.toLowerCase();
+        if (!fileExt || !validExtensions.includes(fileExt)) {
+            return reject(new Error("Formato inválido. Sube un archivo .csv o .xlsx"));
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                if (workbook.SheetNames.length === 0) return reject(new Error("El archivo está vacío."));
+
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawRows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const parsedData: DataRowDCLParsed[] = [];
+
+                for (let i = 1; i < rawRows.length; i++) {
+                    const row = rawRows[i];
+
+                    if (!row || row.length === 0 || row[0] === null || row[0] === undefined || String(row[0]).trim() === '') {
+                        continue;
+                    }
+
+                    const fila = Number(row[0]);
+                    const columna = Number(row[1]);
+                    const tratamiento = String(row[2]).trim().toUpperCase(); // Aseguramos que sea mayúscula
+                    
+                    let produccion: number | null = null;
+                    if (row[3] !== undefined && row[3] !== null && String(row[3]).trim() !== '') {
+                        produccion = Number(row[3]);
+                    }
+
+                    if (isNaN(fila) || isNaN(columna) || !tratamiento || (produccion !== null && isNaN(produccion))) {
+                        return reject(new Error(`Error en la fila ${i + 1}. Formato esperado: Fila, Columna, Tratamiento, Producción.`));
+                    }
+
+                    parsedData.push({
+                        id: `f${fila}-c${columna}`,
+                        fila,
+                        columna,
+                        tratamiento,
+                        produccion
+                    });
+                }
+
+                if (parsedData.length === 0) return reject(new Error("No se encontraron datos válidos."));
+                resolve(parsedData);
+
+            } catch (error) {
+                reject(new Error("Ocurrió un error al leer el archivo Excel."));
+            }
+        };
+        reader.readAsBinaryString(file);
+    });
 }
 
 export interface AnovaResultDCL {

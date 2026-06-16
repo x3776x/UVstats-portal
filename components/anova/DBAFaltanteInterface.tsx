@@ -68,7 +68,6 @@ export default function DBAFaltanteInterface() {
                                     id: row.id,
                                     tratamiento: row.tratamiento,
                                     bloque: row.repeticion, 
-                                    // Si es null, lo pasamos como string vacío para que el input se vea en blanco
                                     produccion: row.produccion === null ? '' : String(row.produccion)
                                 }));
                                 
@@ -128,6 +127,7 @@ export default function DBAFaltanteInterface() {
                                 </tr>
                             </thead>
                             <tbody>
+                                
                                 {tableData.map((row) => (
                                     <tr key={row.id} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-3 font-medium text-gray-900">Trat. {row.tratamiento}</td>

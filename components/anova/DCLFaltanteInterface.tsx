@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import MethodCard from '../MethodCard';
-import Toast from '../Toast';
-import { useToast } from '@/hooks/useToast';
 import { calculateDCLFaltante, AnovaResultDCLFaltante, DataRowDCLFaltante } from '../../utils/anovaCalculator';
+import { parseDCLFile } from '../../utils/anovaCalculator';
+import { useToast } from '../../hooks/useToast';
+import Toast from '../Toast';
 
 export default function DCLFaltanteInterface() {
-    const [method, setMethod] = useState<'manual' | null>(null);
-    const { toast, showToast, hideToast } = useToast();
+    const [method, setMethod] = useState<'manual' | 'excel' | null>(null);
     const [orden, setOrden] = useState('');
+    const { toast, showToast, hideToast } = useToast();
     
     const [tableData, setTableData] = useState<{id: string, fila: number, columna: number, tratamiento: string, produccion: string}[]>([]);
     const [isTableGenerated, setIsTableGenerated] = useState(false);
@@ -39,12 +40,66 @@ export default function DCLFaltanteInterface() {
         setTableData(prevData => prevData.map(row => row.id === id ? { ...row, [field]: value } : row));
     };
 
+    const handleMethodChange = (newMethod: 'manual' | 'excel') => {
+        setMethod(newMethod);
+        setIsTableGenerated(false);
+        setTableData([]);
+        setResultados(null);
+    };
+
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <MethodCard icon="⌨️" label="Introducir datos (Manual)" isActive={method === 'manual'} onClick={() => { setMethod('manual'); setIsTableGenerated(false); setTableData([]); setResultados(null); }} />
+                <MethodCard icon="📁" label="Cargar datos (Excel/CSV)" isActive={method === 'excel'} onClick={() => handleMethodChange('excel')} />
+                <MethodCard icon="⌨️" label="Introducir datos (Manual)" isActive={method === 'manual'} onClick={() => handleMethodChange('manual')} />
             </div>
 
+            {/* SECCIÓN DE EXCEL */}
+            {method === 'excel' && (
+                <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    <label className="block font-medium text-gray-700">Selecciona un archivo Excel/CSV:</label>
+                    <input
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onClick={(e) => (e.currentTarget.value = '')}
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                                const extractedData = await parseDCLFile(file);
+                                
+                                const mappedData = extractedData.map(row => ({
+                                    id: row.id,
+                                    fila: row.fila,
+                                    columna: row.columna,
+                                    tratamiento: row.tratamiento,
+                                    produccion: row.produccion === null ? '' : String(row.produccion)
+                                }));
+                                
+                                setTableData(mappedData);
+                                
+                                const n = Math.max(...mappedData.map(d => d.fila));
+                                setOrden(n.toString());
+                                setIsTableGenerated(true);
+                                
+                                setMethod('manual'); 
+                                setResultados(null);
+                                showToast("Datos cargados. Verifica que solo haya UNA celda de producción en blanco.", "success");
+                            } catch (error: any) { 
+                                showToast(error.message || "Error al leer el archivo Excel", "error"); 
+                            }
+                        }}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <div className="text-xs text-gray-500 mt-2">
+                        <p>El Excel debe tener 4 columnas obligatorias en este orden:</p>
+                        <code className="bg-gray-200 px-2 py-1 rounded">Fila | Columna | Tratamiento | Producción</code>
+                        <p className="text-red-500 font-semibold mt-1">Asegúrate de dejar exactamente una celda vacía en Producción.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* SECCIÓN MANUAL */}
             {method === 'manual' && !isTableGenerated && (
                 <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
                     <h3 className="font-semibold text-gray-800">Parámetros del Cuadro Latino</h3>
@@ -57,6 +112,7 @@ export default function DCLFaltanteInterface() {
                 </div>
             )}
 
+            {/* TABLA DE DATOS */}
             {method === 'manual' && isTableGenerated && (
                 <div className="space-y-4 fade-in">
                     <div className="flex justify-between items-center">
@@ -96,18 +152,25 @@ export default function DCLFaltanteInterface() {
                             onClick={() => {
                                 try {
                                     const n = parseInt(orden);
+                                    
                                     if (tableData.some(r => r.tratamiento.trim() === '')) {
-                                        showToast("Debes llenar la columna de Tratamientos para todos los datos.", "error");
+                                        showToast("Debes llenar la columna de Tratamientos para todas las filas.", "error");
                                         return;
                                     }
 
                                     const formattedData: DataRowDCLFaltante[] = tableData.map(row => ({
-                                        id: row.id, fila: row.fila, columna: row.columna, tratamiento: row.tratamiento,
+                                        id: row.id, 
+                                        fila: row.fila, 
+                                        columna: row.columna, 
+                                        tratamiento: row.tratamiento,
                                         produccion: row.produccion.trim() === '' ? null : parseFloat(row.produccion)
                                     }));
                                     
                                     setResultados(calculateDCLFaltante(n, formattedData));
-                                } catch (error: any) { showToast("${error.message}", "error"); }
+                                    showToast("Estimación y cálculo completados.", "success");
+                                } catch (error: any) { 
+                                    showToast(error.message || "Ocurrió un error al calcular.", "error"); 
+                                }
                             }}>
                             Estimar y Calcular DCL
                         </button>
@@ -115,6 +178,7 @@ export default function DCLFaltanteInterface() {
                 </div>
             )}
 
+            {/* RESULTADOS */}
             {resultados && (
                 <div className="mt-8 space-y-6 fade-in">
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
@@ -196,6 +260,7 @@ export default function DCLFaltanteInterface() {
                     </div>
                 </div>
             )}
+
             <Toast 
                 message={toast.message} 
                 type={toast.type} 

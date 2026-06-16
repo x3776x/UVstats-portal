@@ -4,10 +4,11 @@ import { useState } from 'react';
 import MethodCard from '../MethodCard';
 import Toast from '../Toast';
 import { useToast } from '@/hooks/useToast';
+import { parseDCLFile } from '../../utils/anovaCalculator';
 import { calculateDCL, AnovaResultDCL, DataRowDCL } from '../../utils/anovaCalculator';
 
 export default function DCLInterface() {
-    const [method, setMethod] = useState<'manual' | null>(null);
+    const [method, setMethod] = useState<'manual' | 'excel' | null>(null);
     const { toast, showToast, hideToast } = useToast();
     const [orden, setOrden] = useState('');
     
@@ -42,8 +43,52 @@ export default function DCLInterface() {
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <MethodCard icon="📁" label="Cargar datos (Excel/CSV)" isActive={method === 'excel'} onClick={() => { setMethod('excel'); setIsTableGenerated(false); setTableData([]); setResultados(null); }} />
                 <MethodCard icon="⌨️" label="Introducir datos (Manual)" isActive={method === 'manual'} onClick={() => { setMethod('manual'); setIsTableGenerated(false); setTableData([]); setResultados(null); }} />
             </div>
+
+            {method === 'excel' && (
+                <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    <label className="block font-medium text-gray-700">Selecciona un archivo Excel/CSV:</label>
+                    <input
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onClick={(e) => (e.currentTarget.value = '')}
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                                const extractedData = await parseDCLFile(file);
+                                
+                                const mappedData = extractedData.map(row => ({
+                                    id: row.id,
+                                    fila: row.fila,
+                                    columna: row.columna,
+                                    tratamiento: row.tratamiento,
+                                    produccion: row.produccion === null ? '' : String(row.produccion)
+                                }));
+                                
+                                setTableData(mappedData);
+                                
+                                const n = Math.max(...mappedData.map(d => d.fila));
+                                setOrden(n.toString());
+                                setIsTableGenerated(true);
+                                
+                                setMethod('manual'); 
+                                setResultados(null);
+                                showToast("Cuadro Latino cargado correctamente.", "success");
+                            } catch (error: any) { 
+                                showToast(error.message || "Error al leer el archivo", "error"); 
+                            }
+                        }}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <div className="text-xs text-gray-500 mt-2">
+                        <p>El Excel debe tener 4 columnas obligatorias en este orden exacto:</p>
+                        <code className="bg-gray-200 px-2 py-1 rounded">Fila | Columna | Tratamiento | Producción</code>
+                    </div>
+                </div>
+            )}
 
             {method === 'manual' && !isTableGenerated && (
                 <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
