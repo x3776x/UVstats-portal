@@ -155,3 +155,65 @@ export async function parseBifactorialFile(file: File): Promise<DataRowBifactori
         reader.readAsArrayBuffer(file);
     });
 }
+
+// MP
+
+export interface DataRowMediaPonderadaParsed {
+    id: string;
+    valor: number | null;
+    peso: number | null;
+}
+
+export async function parseMediaPonderadaFile(file: File): Promise<DataRowMediaPonderadaParsed[]> {
+    return new Promise((resolve, reject) => {
+        const validExtensions = ['csv', 'xls', 'xlsx'];
+        const fileExt = file.name.split('.').pop()?.toLowerCase();
+        if (!fileExt || !validExtensions.includes(fileExt)) {
+            return reject(new Error("Formato invalid. Sube un archivo .csv o .xlsx"))
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            try {
+                // @ts-ignore - Asumimos que XLSX ya está importado arriba
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                if (workbook.SheetNames.length === 0) return reject(new Error("El archivo está vacío."));
+
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawRows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const parsedData: DataRowMediaPonderadaParsed[] = [];
+
+                // Asumimos fila 0 como encabezados
+                for (let i = 1; i < rawRows.length; i++) {
+                    const row = rawRows[i];
+
+                    if (!row || row.length === 0 || row[0] === null || row[0] === undefined || String(row[0]).trim() === '') {
+                        continue;
+                    }
+
+                    const valor = Number(row[0]);
+                    let peso: number | null = null;
+                    if (row[1] !== undefined && row[1] !== null && String(row[1]).trim() !== '') {
+                        peso = Number(row[1]);
+                    }
+
+                    if (isNaN(valor) || (peso !== null && isNaN(peso))) {
+                        return reject(new Error(`Error numérico en la fila ${i + 1}.`));
+                    }
+
+                    parsedData.push({ id: `r${i}`, valor, peso });
+                }
+
+                if (parsedData.length === 0) return reject(new Error("No se encontraron datos."));
+                resolve(parsedData);
+
+            } catch (error) {
+                reject(new Error("Error al leer el archivo Excel."));
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}

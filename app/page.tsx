@@ -3,10 +3,10 @@ import Link from "next/link";
 
 export default function Home() {
   const projects = [
-    { id: 1, title: "ANOVA", description: "analisis de varianza", icon: "/icons/ANOVAppPortada.png" },
-    { id: 2, title: "Estadistica descriptiva", description: "descripcion...", icon: null },
-    { id: 3, title: "Regresion Logistica", description: "descripcion...", icon: null },
-    { id: 4, title: "next example", description: "descripcion...", icon: null},
+    { id: 1, title: "ANOVA", description: "analisis de varianza", icon: "/icons/ANOVAppPortada.png", href: "/anova" },
+    { id: 2, title: "EstDesc", description: "estadistica descriptiva", icon: "/icons/EstDescPortada.png", href: "/estDesc" },
+    { id: 3, title: "Regresion Logistica", description: "descripcion...", icon: null, href: null },
+    { id: 4, title: "next example", description: "descripcion...", icon: null, href: null},
   ];
 
   return (
@@ -18,21 +18,22 @@ export default function Home() {
 
       <main className="tile-grid">
         {projects.map((project) => (
-          project.title === "ANOVA" ? (
-            <Link href="/anova" key={project.id} className="block no-underline">
+          project.href ? (
+            <Link href={project.href} key={project.id} className="block no-underline hover:scale-105 transition-transform">
               <ProjectTile 
-                title={project.title} 
-                description={project.description} 
-                icon={project.icon} 
+                title={project.title}
+                description={project.description}
+                icon={project.icon}
               />
             </Link>
           ) : (
-            <ProjectTile 
-              key={project.id} 
-              title={project.title} 
-              description={project.description} 
-              icon={project.icon} 
-            />
+            <div key={project.id} className="opacity-60 cursor-not-allowed">
+              <ProjectTile
+                title={project.title}
+                description={project.description}
+                icon={project.icon}
+              />
+            </div>
           )
         ))}
       </main>
