@@ -8,6 +8,7 @@ import SidebarButton from "@/components/SidebarButton";
 import EmptyState from "@/components/EmptyState";
 import AboutEscDesc from './aboutEstDesc'
 import MediaPonderadaInterface from '@/components/estdesc/MediaPonderadaInterface';
+import EstadisticaDescriptivaInterface from '@/components/estdesc/EstadisticaDescriptivaInterface';
 
 export default function EstDescPage() {
     const [activeKey, setActiveKey] = useState<EstDescModelKey | 'ABOUT'>('MP');
@@ -72,7 +73,7 @@ export default function EstDescPage() {
                     )}
                     {/*TODO: interfaces */}
                     {activeKey === 'MP' && <MediaPonderadaInterface />}
-                    {activeKey === 'EstDesc'}
+                    {activeKey === 'EstDesc' && <EstadisticaDescriptivaInterface />}
 
                     {activeKey === 'ABOUT' && <AboutEscDesc/>}
 

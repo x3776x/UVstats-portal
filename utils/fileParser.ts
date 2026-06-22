@@ -176,7 +176,6 @@ export async function parseMediaPonderadaFile(file: File): Promise<DataRowMediaP
 
         reader.onload = (e) => {
             try {
-                // @ts-ignore - Asumimos que XLSX ya está importado arriba
                 const data = e.target?.result;
                 const workbook = XLSX.read(data, { type: 'binary' });
                 if (workbook.SheetNames.length === 0) return reject(new Error("El archivo está vacío."));
@@ -186,7 +185,6 @@ export async function parseMediaPonderadaFile(file: File): Promise<DataRowMediaP
 
                 const parsedData: DataRowMediaPonderadaParsed[] = [];
 
-                // Asumimos fila 0 como encabezados
                 for (let i = 1; i < rawRows.length; i++) {
                     const row = rawRows[i];
 
@@ -212,6 +210,58 @@ export async function parseMediaPonderadaFile(file: File): Promise<DataRowMediaP
 
             } catch (error) {
                 reject(new Error("Error al leer el archivo Excel."));
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Est Desc
+export async function parseEstadisticaFile(file: File): Promise<Record<string, number[]>> {
+    return new Promise((resolve, reject) => {
+        const validExtensions = ['csv', 'xls', 'xlsx'];
+        const fileExt = file.name.split('.').pop()?.toLowerCase();
+        if (!fileExt || !validExtensions.includes(fileExt)) return reject(new Error("Formato inválido."));
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                if (workbook.SheetNames.length === 0) return reject(new Error("Archivo vacío."));
+
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawRows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                if (rawRows.length < 2) return reject(new Error("No hay suficientes datos."));
+
+                const headers = rawRows[0].map(h => String(h).trim() || "SinTitulo");
+                const variables: Record<string, number[]> = {};
+                headers.forEach(h => variables[h] = []);
+
+                for (let i = 1; i < rawRows.length; i++) {
+                    const row = rawRows[i];
+                    if (!row || row.length === 0) continue;
+
+                    headers.forEach((header, colIndex) => {
+                        const val = row[colIndex];
+                        if (val !== undefined && val !== null && String(val).trim() !== '') {
+                            const num = Number(val);
+                            if (!isNaN(num)) variables[header].push(num);
+                        }
+                    });
+                }
+
+                const variablesValidas: Record<string, number[]> = {};
+                for (const key in variables) {
+                    if (variables[key].length > 0) variablesValidas[key] = variables[key];
+                }
+
+                if (Object.keys(variablesValidas).length === 0) return reject(new Error("No se encontraron columnas numéricas."));
+                
+                resolve(variablesValidas);
+            } catch (error) {
+                reject(new Error("Error al procesar el Excel."));
             }
         };
         reader.readAsArrayBuffer(file);
