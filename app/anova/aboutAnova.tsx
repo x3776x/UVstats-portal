@@ -25,7 +25,7 @@ export default function AboutAnova() {
                                     <li>• [Mtro. Christian Pérez Salazar - chperez@uv.mx]</li>
                                     <li>• [Dr. Juan Ramirez - jruiz@uv.mx]</li>
                                     <li>• [Mtra. Ana Luz Polo apolo@uv.mx]</li>
-                                    <li>• [Dra. Gabriela Eréndira Hernández gabyerendira@yahoo.com</li>
+                                    <li>• [Dra. Gabriela Eréndira Hernández gabyerendira@yahoo.com]</li>
                                     <li>• [Dr. Iván Hernández - ivan.ruiz@uv.es]</li>
                                 </ul>
                             </div>
