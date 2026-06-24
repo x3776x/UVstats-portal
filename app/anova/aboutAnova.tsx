@@ -11,7 +11,7 @@ export default function AboutAnova() {
 
                 <div className="space-y-6 text-gray-600 leading-relaxed">
                     <p>
-                        Este módulo de Análisis de Varianza (ANOVA) es una herramienta estadística interactiva diseñada para el análisis de diseños experimentales balanceados y desbalanceados. Permite la evaluación de múltiples factores, bloques y estimación de datos faltantes mediante procesamiento matemático reactivo.
+                        El modulo de ANOVA realiza el analisis de varianza de los principales disenios experimentales y de tratamientos mediante modulos de efectos fijos con su correspondiente estimacion de un dato daltante y su comparacion de medias mediante la prueba de Tukey y con contrastes ortogonales y ademas evalua la eiciencia del dise;o experimental empleado mediante el calculo de eficiencia relativa.
                     </p>
 
                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 mt-8">
@@ -22,9 +22,9 @@ export default function AboutAnova() {
                             <div>
                                 <h4 className="font-semibold text-blue-800 mb-2 border-b border-blue-200 pb-1">Desarrollo Original (Java)</h4>
                                 <ul className="space-y-1 text-sm text-blue-900/80">
-                                    <li>• [Christian Pérez]</li>
+                                    <li>• [Mtro. Christian Pérez Salazar - chperez@uv.mx]</li>
                                     <li>• [Juan Ramirez]</li>
-                                    <li>• [Ana Luz Polo]</li>
+                                    <li>• [Mtro. Ana Luz Polo]</li>
                                     <li>• [Gabriela Eréndira Hernández</li>
                                     <li>• [Iván Hernández]</li>
                                 </ul>
@@ -33,7 +33,7 @@ export default function AboutAnova() {
                             <div>
                                 <h4 className="font-semibold text-blue-800 mb-2 border-b border-blue-200 pb-1">Migración y Desarrollo Web</h4>
                                 <ul className="space-y-1 text-sm text-blue-900/80">
-                                    <li className="font-medium">• [Abraham Vazquez]</li>
+                                    <li className="font-medium">• [Abraham Vazquez - abrahamvquinto@gmail.com]</li>
                                     <li className="text-xs mt-2 italic text-blue-800/60">
                                         Refactorización a TypeScript, React y Next.js, implementación de interfaz reactiva y carga de archivos Excel/CSV.
                                     </li>

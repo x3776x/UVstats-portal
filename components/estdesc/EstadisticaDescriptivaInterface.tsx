@@ -6,6 +6,7 @@ import { calcularEstadisticasBasicas, calcularTablaFrecuencias, EstadisticasBasi
 import { parseEstadisticaFile } from '../../utils/fileParser';
 import { useToast } from '../../hooks/useToast';
 import Toast from '../Toast';
+import { exportarReporteDocx } from '@/utils/exportDocx';
 
 export default function EstadisticaDescriptivaInterface() {
     const { toast, showToast, hideToast } = useToast();
@@ -145,8 +146,23 @@ export default function EstadisticaDescriptivaInterface() {
             {resultadosGenerales && (
                 <div className="space-y-6 fade-in">
                     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                        <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
+                        <div className="bg-blue-50 px-6 py-4 border-b border-blue-100 flex justify-between items-center">
                             <h3 className="font-bold text-blue-900">Resumen Estadístico</h3>
+                            
+                            <button 
+                                onClick={async () => {
+                                    try {
+                                        await exportarReporteDocx(resultadosGenerales, config, varFrecuencia, tablaFrecuencia);
+                                        showToast("Reporte exportado exitosamente.", "success");
+                                    } catch (err) {
+                                        showToast("Error al generar el documento Word.", "error");
+                                    }
+                                }}
+                                className="bg-blue-600 text-white text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            >
+                                <span>📄</span>
+                                <span>Exportar a Word</span>
+                            </button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">

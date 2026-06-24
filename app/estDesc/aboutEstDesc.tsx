@@ -11,7 +11,7 @@ export default function AboutEscDesc() {
 
                 <div className="space-y-6 text-gray-600 leading-relaxed">
                     <p>
-                        El módulo de estadistica descriptiva...
+                        El módulo de estadistica descriptiva realiza el calculo de algunas estadisticas descriptivas, tales como  medias de tendencia central y de dispercion, tablas y graficos de frecuencias
                     </p>
                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 mt-8">
                         <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider mb-4">Créditos de Desarrollo</h3>
@@ -21,14 +21,16 @@ export default function AboutEscDesc() {
                             <div>
                                 <h4 className="font-semibold text-blue-800 mb-2 border-b border-blue-200 pb-1">Desarrollo Original (Java)</h4>
                                 <ul className="space-y-1 text-sm text-blue-900/80">
-                                    <li>• [Christian Pérez]</li>
+                                    <li>• [Dr. Juan Ruiz Ramirez = jruiz@uv.mx]</li>
+                                    <li>• [Mtro. Christian Pérez Salazar - chperez@uv.mx]</li>
+                                    <li>• [Dr. Ivan Ruiz Hernandez - ivan.ruiz@uv.mx]</li>
                                 </ul>
                             </div>
 
                             <div>
                                 <h4 className="font-semibold text-blue-800 mb-2 border-b border-blue-200 pb-1">Migración y Desarrollo Web</h4>
                                 <ul className="space-y-1 text-sm text-blue-900/80">
-                                    <li className="font-medium">• [Abraham Vazquez]</li>
+                                    <li className="font-medium">• [Abraham Vazquez - abrahamvquinto@gmail.com]</li>
                                     <li className="text-xs mt-2 italic text-blue-800/60">
                                         Refactorización a TypeScript, React y Next.js, implementación de interfaz reactiva y carga de archivos Excel/CSV.
                                     </li>
