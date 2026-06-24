@@ -23,7 +23,7 @@ export default function AboutEscDesc() {
                                 <ul className="space-y-1 text-sm text-blue-900/80">
                                     <li>• [Dr. Juan Ruiz Ramirez = jruiz@uv.mx]</li>
                                     <li>• [Mtro. Christian Pérez Salazar - chperez@uv.mx]</li>
-                                    <li>• [Dr. Ivan Ruiz Hernandez - ivan.ruiz@uv.mx]</li>
+                                    <li>• [Dr. Ivan Ruiz Hernandez - ivan.ruiz@uv.es]</li>
                                 </ul>
                             </div>
 
@@ -32,7 +32,7 @@ export default function AboutEscDesc() {
                                 <ul className="space-y-1 text-sm text-blue-900/80">
                                     <li className="font-medium">• [Abraham Vazquez - abrahamvquinto@gmail.com]</li>
                                     <li className="text-xs mt-2 italic text-blue-800/60">
-                                        Refactorización a TypeScript, React y Next.js, implementación de interfaz reactiva y carga de archivos Excel/CSV.
+                                        Refactorización a TypeScript, React y Next.js.
                                     </li>
                                 </ul>
                             </div>

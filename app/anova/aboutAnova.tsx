@@ -23,10 +23,10 @@ export default function AboutAnova() {
                                 <h4 className="font-semibold text-blue-800 mb-2 border-b border-blue-200 pb-1">Desarrollo Original (Java)</h4>
                                 <ul className="space-y-1 text-sm text-blue-900/80">
                                     <li>• [Mtro. Christian Pérez Salazar - chperez@uv.mx]</li>
-                                    <li>• [Juan Ramirez]</li>
-                                    <li>• [Mtro. Ana Luz Polo]</li>
-                                    <li>• [Gabriela Eréndira Hernández</li>
-                                    <li>• [Iván Hernández]</li>
+                                    <li>• [Dr. Juan Ramirez - jruiz@uv.mx]</li>
+                                    <li>• [Mtra. Ana Luz Polo apolo@uv.mx]</li>
+                                    <li>• [Dra. Gabriela Eréndira Hernández gabyerendira@yahoo.com</li>
+                                    <li>• [Dr. Iván Hernández - ivan.ruiz@uv.es]</li>
                                 </ul>
                             </div>
 
@@ -35,7 +35,7 @@ export default function AboutAnova() {
                                 <ul className="space-y-1 text-sm text-blue-900/80">
                                     <li className="font-medium">• [Abraham Vazquez - abrahamvquinto@gmail.com]</li>
                                     <li className="text-xs mt-2 italic text-blue-800/60">
-                                        Refactorización a TypeScript, React y Next.js, implementación de interfaz reactiva y carga de archivos Excel/CSV.
+                                        Refactorización a TypeScript, React y Next.js.
                                     </li>
                                 </ul>
                             </div>
