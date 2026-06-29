@@ -1,6 +1,8 @@
 export type InfEstModelKey =
-| 'IC'
-| 'PdH';
+| 'UNA_MEDIA'
+| 'DOS_MEDIAS'
+| 'UNA_PROP' 
+| 'DOS_PROP';
 
 export interface InfEstModel {
     key: InfEstModelKey;
@@ -10,13 +12,23 @@ export interface InfEstModel {
 
 export const INFEST_MODELS: InfEstModel[] = [
     {
-        key: 'IC',
-        shortName: 'IC',
-        fullName: 'Intervalos de confianza'
+        key: 'UNA_MEDIA',
+        shortName: '1 Media',
+        fullName: 'Inferencia para una media'
     },
     {
-        key: 'PdH',
-        shortName: 'PdH',
-        fullName: 'Prueba de hipotesis'
+        key: 'DOS_MEDIAS',
+        shortName: '2 Medias',
+        fullName: 'Inferencia para dos medias'
     },
+    {
+        key: 'UNA_PROP',
+        shortName: '1 Proporcion',
+        fullName: 'Inferencia para una proporcion'
+    },
+    {
+        key: 'DOS_PROP',
+        shortName: '2 Proporciones',
+        fullName: 'Inferencia para dos proporciones'
+    }
 ];

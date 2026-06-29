@@ -3,14 +3,15 @@
 import { useState } from "react";
 import Link from 'next/link';
 
-import {INFEST_MODELS, InfEstModelKey } from '../data/infestModels';
+import { INFEST_MODELS, InfEstModelKey } from '../data/infestModels';
 import SidebarButton from "@/components/SidebarButton";
 import EmptyState from "@/components/EmptyState";
 import AboutInfEst from "./aboutInFest";
 import UnaMediaInterface from "@/components/inferencia/UnaMediaInterface";
+import DosMediasInterface from "@/components/inferencia/DosMediasInterface";
 
 export default function InfEstPage() {
-    const [activeKey, setActiveKey] = useState<InfEstModelKey | 'ABOUT'> ('IC');
+    const [activeKey, setActiveKey] = useState<InfEstModelKey | 'ABOUT'>('UNA_MEDIA');
 
     const activeModel = INFEST_MODELS.find((m) => m.key === activeKey);
 
@@ -38,11 +39,11 @@ export default function InfEstPage() {
 
                 <div className="p-4 mt-auto border-t border-gray-200 hidden md:block">
                     <button
-                    onClick={() => setActiveKey('ABOUT')}
-                    className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
-                        activeKey === 'ABOUT' 
-                            ? 'bg-blue-50 text-blue-700 font-medium' 
-                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                        onClick={() => setActiveKey('ABOUT')}
+                        className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                            activeKey === 'ABOUT' 
+                                ? 'bg-blue-50 text-blue-700 font-medium' 
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                     >
                         ℹ️ Acerca de InfEst
@@ -50,37 +51,36 @@ export default function InfEstPage() {
                 </div>
             </aside>
 
-            {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10">
-        <div className="mb-6 hidden md:block">
-          <Link href="/" className="text-sm text-blue-600 hover:underline">
-            &larr; Volver al portal
-          </Link>
-        </div>
+            <main className="flex-1 p-6 md:p-10">
+                <div className="mb-6 hidden md:block">
+                    <Link href="/" className="text-sm text-blue-600 hover:underline">
+                        &larr; Volver al portal
+                    </Link>
+                </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
-          
-          {activeModel && (
-            <div className="mb-6 border-b pb-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 mb-1">
-                {activeModel.shortName}
-              </p>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {activeModel.fullName}
-              </h1>
-            </div>
-          )}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                    
+                    {activeModel && (
+                        <div className="mb-6 border-b pb-4">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-blue-500 mb-1">
+                                {activeModel.shortName}
+                            </p>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                {activeModel.fullName}
+                            </h1>
+                        </div>
+                    )}
 
-          {/* Render interface or WIP placeholder */}
-          {activeKey === 'IC' && <UnaMediaInterface />}
+                    {activeKey === 'UNA_MEDIA' && <UnaMediaInterface />}
+                    {activeKey === 'DOS_MEDIAS' && <DosMediasInterface />}
 
-          {activeKey === 'ABOUT' && <AboutInfEst />}
-          
-          {!['IC', 'ABOUT'].includes(activeKey) && (
-             <EmptyState modelName={activeModel?.fullName || 'Módulo'} />
-          )}
+                    {activeKey === 'ABOUT' && <AboutInfEst />}
+                    
+                    {!['UNA_MEDIA', 'DOS_MEDIAS', 'UNA_PROP', 'DOS_PROP', 'ABOUT'].includes(activeKey) && (
+                        <EmptyState modelName={activeModel?.fullName || 'Módulo'} />
+                    )}
+                </div>
+            </main>
         </div>
-      </main>
-        </div>
-    )
+    );
 }
