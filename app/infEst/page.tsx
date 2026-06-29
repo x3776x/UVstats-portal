@@ -9,6 +9,8 @@ import EmptyState from "@/components/EmptyState";
 import AboutInfEst from "./aboutInFest";
 import UnaMediaInterface from "@/components/inferencia/UnaMediaInterface";
 import DosMediasInterface from "@/components/inferencia/DosMediasInterface";
+import UnaProporcionInterface from "@/components/inferencia/UnaProporcionInterface";
+import DosProporcionesInterface from "@/components/inferencia/DosProporcionesInterface";
 
 export default function InfEstPage() {
     const [activeKey, setActiveKey] = useState<InfEstModelKey | 'ABOUT'>('UNA_MEDIA');
@@ -73,6 +75,8 @@ export default function InfEstPage() {
 
                     {activeKey === 'UNA_MEDIA' && <UnaMediaInterface />}
                     {activeKey === 'DOS_MEDIAS' && <DosMediasInterface />}
+                    {activeKey === 'UNA_PROP' && <UnaProporcionInterface />}
+                    {activeKey === 'DOS_PROP' && <DosProporcionesInterface />}
 
                     {activeKey === 'ABOUT' && <AboutInfEst />}
                     
