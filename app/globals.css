@@ -39,10 +39,10 @@
 }
 
 .tile-icon {
-  width: 50px;
-  height: 50px;
+  max-width: 10rem;
+  max-height: 10rem;
   margin-bottom: 12px;
-  object-fit: fill;
+  object-fit:fill;
 }
 
 .tile-placeholder-icon {

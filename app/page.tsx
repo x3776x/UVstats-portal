@@ -5,7 +5,7 @@ export default function Home() {
   const projects = [
     { id: 1, title: "ANOVA", description: "analisis de varianza", icon: "/icons/ANOVAppPortada.png", href: "/anova" },
     { id: 2, title: "EstDesc", description: "estadistica descriptiva", icon: "/icons/EstDescPortada.png", href: "/estDesc" },
-    { id: 3, title: "Regresion Logistica", description: "descripcion...", icon: null, href: null },
+    { id: 3, title: "Inferencia Est.", description: "Inferencia estadistica", icon: "/icons/InfEstPortada.png", href: "/infEst" },
     { id: 4, title: "next example", description: "descripcion...", icon: null, href: null},
   ];
 
@@ -40,3 +40,4 @@ export default function Home() {
     </div>
   );
 }
+//Made on earth by humans
