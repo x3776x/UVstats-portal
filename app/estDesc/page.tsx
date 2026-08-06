@@ -46,7 +46,7 @@ export default function EstDescPage() {
                             : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                     >
-                        ℹ️ Acerca de EstDesc
+                        ℹ Acerca de EstDesc
                     </button>
                 </div>
             </aside>

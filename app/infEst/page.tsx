@@ -48,7 +48,7 @@ export default function InfEstPage() {
                                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                     >
-                        ℹ️ Acerca de InfEst
+                        ℹ Acerca de InfEst
                     </button>
                 </div>
             </aside>
