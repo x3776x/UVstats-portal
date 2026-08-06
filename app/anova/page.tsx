@@ -18,7 +18,6 @@ import PDDCAInterface from '@/components/anova/PDDCAInterface';
 import PDDBAInterface from '@/components/anova/PDDBAInterface';
 import AboutAnova from './aboutAnova';
 
-
 export default function AnovaPage() {
   const [activeKey, setActiveKey] = useState<AnovaModelKey | 'ABOUT'>('DCA');
 

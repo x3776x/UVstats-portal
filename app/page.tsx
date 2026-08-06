@@ -6,7 +6,7 @@ export default function Home() {
     { id: 1, title: "ANOVA", description: "analisis de varianza", icon: "/icons/ANOVAppPortada.png", href: "/anova" },
     { id: 2, title: "EstDesc", description: "estadistica descriptiva", icon: "/icons/EstDescPortada.png", href: "/estDesc" },
     { id: 3, title: "Inferencia Est.", description: "Inferencia estadistica", icon: "/icons/InfEstPortada.png", href: "/infEst" },
-    { id: 4, title: "next example", description: "descripcion...", icon: null, href: null},
+    { id: 4, title: "Eficiencia Relat.", description: "Eficiencia relativa", icon: "/icons/EffRelatPortada.png", href: "/effRelat"},
   ];
 
   return (
