@@ -7,7 +7,7 @@ export default function Home() {
     { id: 2, title: "EstDesc", description: "estadistica descriptiva", icon: "/icons/EstDescPortada.png", href: "/estDesc" },
     { id: 3, title: "Inferencia Est.", description: "Inferencia estadistica", icon: "/icons/InfEstPortada.png", href: "/infEst" },
     { id: 4, title: "Eficiencia Relat.", description: "Eficiencia relativa", icon: "/icons/EffRelatPortada.png", href: "/effRelat"},
-    { id: 5, title: "Muest. Estad.", description: "Muestreo Estadístivo", icon: null, href: "muestEstad"},
+    { id: 5, title: "Muest. Estad.", description: "Muestreo Estadístivo", icon: null, href: "/muestEstad"},
   ];
 
   return (
