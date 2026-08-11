@@ -1,5 +1,8 @@
 export type MuestEstadModelKey = 
-    | 'PLACEHOLDER';
+    | 'MAS'
+    | 'MAE'
+    | 'MS'
+    | 'MC';
 
 export interface MuestEstadModel {
     key: MuestEstadModelKey;
@@ -9,8 +12,23 @@ export interface MuestEstadModel {
 
 export const MUEST_MODELS: MuestEstadModel[] = [
     {
-        key: 'PLACEHOLDER',
-        shortName: 'PLHR',
-        fullName: 'Ejemplo'
+        key: 'MAS',
+        shortName: 'M.A.S.',
+        fullName: 'Muestreo Aleatorio Simple'
     },
+    {
+        key: 'MAE',
+        shortName: 'M.A.E.',
+        fullName: 'Muestreo Aleatorio Estratificado'
+    },
+    {
+        key: 'MS',
+        shortName: 'M.S.',
+        fullName: 'Muestreo Sistemático'
+    },
+    {
+        key: 'MC',
+        shortName: 'M.C.',
+        fullName: 'Muestreo por Conglomerados'
+    }
 ];

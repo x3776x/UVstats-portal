@@ -43,7 +43,7 @@ export default function ModuleLayout({
                     {models.map((model) => (
                         <SidebarButton
                             key={model.key}
-                            label={model.shortName}
+                            label={model.fullName}
                             isActive={activeKey === model.key}
                             onClick={() => onKeyChange(model.key)}
                         />

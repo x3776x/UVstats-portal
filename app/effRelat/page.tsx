@@ -1,35 +1,30 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
-import Link from "next/link";
-
 import { EFF_MODELS, EffRelatModelKey } from '../data/effRelatModels';
-import EmptyState from '@/components/EmptyState';
-import SidebarButton from '@/components/SidebarButton';
-import AboutEffRelat from './aboutEffRelat';
-import ModuleLayout from '@/components/moduleLayout';
 
-export default function EffRelatPage() {
+import ModuleLayout from '@/components/moduleLayout';
+import EficienciaRelativaInterface from '@/components/effRelat/eficienciaRelativaInterface';
+import AboutEffRelat from './aboutEffRelat';
+
+export default function EficienciaPage() {
     const [activeKey, setActiveKey] = useState<EffRelatModelKey | 'ABOUT'>('ER_DBA_DCA');
 
     const renderContent = () => {
-        switch (activeKey) {
-            case 'ABOUT': return <AboutEffRelat/>;
-            default: 
-                const activeModel = EFF_MODELS.find(m => m.key === activeKey);
-                return <EmptyState modelName={activeModel?.fullName || 'Módulo'}/>;
-        }
+        if (activeKey === 'ABOUT') return <AboutEffRelat/>;
+        
+        return <EficienciaRelativaInterface modelKey={activeKey as EffRelatModelKey} />;
     };
 
     return (
         <ModuleLayout
-            title="EffRelat"
+            title="Eficiencia Relativa"
             models={EFF_MODELS}
-            activeKey={activeKey as string}
+            activeKey={activeKey}
             onKeyChange={(key) => setActiveKey(key as EffRelatModelKey | 'ABOUT')}
-            aboutLabel="Acerca de Eff Relat."
+            aboutLabel="Acerca de Eficiencia Relativa"
         >
             {renderContent()}
         </ModuleLayout>
-    )
+    );
 }
