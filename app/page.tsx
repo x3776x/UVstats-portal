@@ -9,6 +9,7 @@ export default function Home() {
     { id: 4, title: "Eficiencia Relat.", description: "Eficiencia relativa", icon: "/icons/EffRelatPortada.png", href: "/effRelat"},
     { id: 5, title: "Muest. Estad.", description: "Muestreo Estadístivo", icon: "/icons/MuestEstadPortada.png", href: "/muestEstad"},
     { id: 6, title: "Estratificación", description: "Estratificación de poblaciones", icon: "/icons/EstratificacionPortada.png", href: "/estratificacion"},
+    { id: 7, title: "Tip. Prod.", description: "Tipología de productores", icon: "/icons/TipProdPortada.svg", href:"/tipProd"},
   ];
 
   return (
