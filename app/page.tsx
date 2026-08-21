@@ -1,3 +1,4 @@
+import { title } from "process";
 import ProjectTile from "../components/ProjectTile";
 import Link from "next/link";
 
@@ -10,6 +11,8 @@ export default function Home() {
     { id: 5, title: "Muest. Estad.", description: "Muestreo Estadístivo", icon: "/icons/MuestEstadPortada.png", href: "/muestEstad"},
     { id: 6, title: "Estratificación", description: "Estratificación de poblaciones", icon: "/icons/EstratificacionPortada.png", href: "/estratificacion"},
     { id: 7, title: "Tip. Prod.", description: "Tipología de productores", icon: "/icons/TipProdPortada.svg", href:"/tipProd"},
+    { id: 8, title: "GE Gas.", description: "GE Gasolinas", icon: null, href:"/geGasolinas"},
+    { id: 9, title: "SIMULARED.", description: "Simulared", icon: null, href:"/simulared"},
   ];
 
   return (
